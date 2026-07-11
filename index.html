@@ -189,21 +189,21 @@
   <div class="card">
     <div class="drill">
       <div class="lbl">頭骨速寫<small>目標 8 月底 100 顆</small></div>
-      <div class="right"><span class="count" id="skullCount">0</span><button data-add="skull">＋5</button></div>
+      <div class="right"><span class="count" id="skullCount">0</span><button data-sub="skull" style="border-color:var(--line);color:var(--ink-faint)">−5</button><button data-add1="skull" style="border-color:var(--line)">＋1</button><button data-add="skull">＋5</button></div>
     </div>
     <div class="drill">
       <div class="lbl">手部速寫<small>9 月起每週一晚維持・無硬指標</small></div>
-      <div class="right"><span class="count" id="handCount">0</span><button data-add="hand">＋5</button></div>
+      <div class="right"><span class="count" id="handCount">0</span><button data-sub="hand" style="border-color:var(--line);color:var(--ink-faint)">−5</button><button data-add1="hand" style="border-color:var(--line)">＋1</button><button data-add="hand">＋5</button></div>
     </div>
     <div class="drill">
       <div class="lbl">腿臀足速寫<small>目標 12 月底 120 組・10 月起加量</small></div>
-      <div class="right"><span class="count" id="legCount">0</span><button data-add="leg">＋5</button></div>
+      <div class="right"><span class="count" id="legCount">0</span><button data-sub="leg" style="border-color:var(--line);color:var(--ink-faint)">−5</button><button data-add1="leg" style="border-color:var(--line)">＋1</button><button data-add="leg">＋5</button></div>
     </div>
     <div class="drill">
       <div class="lbl">軀幹・透視速寫<small>8–10 月主攻・自然累計無硬指標</small></div>
-      <div class="right"><span class="count" id="torsoCount">0</span><button data-add="torso">＋5</button></div>
+      <div class="right"><span class="count" id="torsoCount">0</span><button data-sub="torso" style="border-color:var(--line);color:var(--ink-faint)">−5</button><button data-add1="torso" style="border-color:var(--line)">＋1</button><button data-add="torso">＋5</button></div>
     </div>
-    <div class="note" style="margin-top:8px">「＋5」是快速計數鈕:每畫完 5 個速寫按一下,數字直接累計進總進度,不用另外存檔。</div>
+    <div class="note" style="margin-top:8px">計數不用湊 5 的倍數:批次用＋5、零頭用＋1(畫 8 張=＋5＋1×3 或＋5＋5−5+…隨你),按錯用−5 修。</div>
   </div>
 
   <details>
@@ -370,7 +370,7 @@
     <div class="eyebrow" id="pvType">—</div>
     <div class="coach" id="pvCoach"></div>
     <div class="plan" id="pvList"></div>
-    <div class="note">預覽模式:只是給你看排程長怎樣,不會寫入任何紀錄。用 ‹ › 可以往前後翻日期。</div>
+    <div class="note">預覽模式:未來日期的課程是「假設照表完成」推算的進度,不會寫入任何紀錄。用 ‹ › 可以往前後翻日期。</div>
     <button class="undo" id="pvClose" style="display:block;margin-top:12px">關閉</button>
   </div>
 </div>
@@ -450,7 +450,26 @@ function monthQueue(ck,ym){
     COURSE_DATA[ck].lessons.forEach((L,i)=>{if(L[2]===ch)out.push(i)});
   return out;
 }
-function watchedSet(ck){return new Set(S.watched&&S.watched[ck]||[])}
+let SIM_WATCHED=null; /* 預覽模擬用:非 null 時 watchedSet 讀模擬狀態 */
+function watchedSet(ck){
+  if(SIM_WATCHED)return SIM_WATCHED[ck];
+  return new Set(S.watched&&S.watched[ck]||[]);
+}
+/* 從今天走到目標日前一天,把沿途課程時段視為已完成 */
+function simulateTo(target){
+  const sim={};COURSE_KEYS.forEach(k=>sim[k]=new Set(S.watched&&S.watched[k]||[]));
+  const start=new Date();start.setHours(0,0,0,0);
+  const t0=new Date(Math.max(start,PLAN_START));
+  const end=new Date(target);end.setHours(0,0,0,0);
+  SIM_WATCHED=sim;
+  for(let d=new Date(t0);d<end;d.setDate(d.getDate()+1)){
+    try{
+      const p=planDay(d);
+      (p.blocks||[]).forEach(b=>{if(b.courseKey&&b.bundle)b.bundle.forEach(j=>sim[b.courseKey].add(j))});
+    }catch(e){}
+  }
+  return sim;
+}
 /* 本月隊列 → 回補前月 → 先修下月 → 複習(1.25x) */
 function courseBundle(ck,date){
   const ym=mk(date), cd=COURSE_DATA[ck], w=watchedSet(ck);
@@ -493,7 +512,7 @@ const ALT_FUN=[
 const PLAN_START=new Date(2026,6,12); // 計畫起點:7/12
 const RUN_ANCHOR=new Date(2026,6,13); // 週數/漸進計算起點(第一個週一)
 const KEY='evening-os';
-let S={setup:false,skull:0,hand:0,leg:0,torso:0,done:0,
+let S={setup:false,skull:0,hand:0,leg:0,torso:0,done:0,skipBlk:{},
   runTarget:2,runBase:2,courseNights:2,
   engTime:'20:00',engDur:50,
   courseIdx:{anatomy:0,force:0,sketching:0,seeanddraw:0},
@@ -594,6 +613,7 @@ async function load(){
   if(!S.skipFun)S.skipFun={};
   if(!S.rain)S.rain={};
   if(!S.coursePick)S.coursePick={};
+  if(!S.skipBlk)S.skipBlk={};
   if(!S.watched)S.watched={};
   for(const k of COURSE_KEYS){
     if(!S.watched[k])S.watched[k]=[];
@@ -834,8 +854,13 @@ function planDay(date){
     const eveFree=slots.find(([s,e])=>s>=1140&&e-s>=40);
     const eveHasFun=blocks.some(b=>b.type==='fun'&&(b.ord||0)>=1140);
     if(eveFree&&!eveHasFun){
-      blocks.push({type:'sub',ttl:'輕量選項(可做可不做)',sub:'30 分速寫加餐或英文自習・跳過也不影響進度',
-        min:30,time:fmt(eveFree[0])+'–'+fmt(eveFree[0]+30),ord:eveFree[0]});
+      const expected=Math.floor(Math.max(0,(date-PLAN_START)/86400000)/172*20);
+      const behind=S.done<expected;
+      blocks.push(behind
+        ?{type:'draw',ttl:'完稿加時(建議・可跳過)',sub:'主題進度落後配速,晚上補 60–90 分・不想畫就休息',
+          min:90,time:fmt(eveFree[0])+'–'+fmt(Math.min(eveFree[1],eveFree[0]+90)),ord:eveFree[0]}
+        :{type:'sub',ttl:'輕量選項(可做可不做)',sub:'30 分速寫加餐或英文自習・跳過也不影響進度',
+          min:30,time:fmt(eveFree[0])+'–'+fmt(eveFree[0]+30),ord:eveFree[0]});
     }
     blocks.sort((a,b)=>(a.ord||0)-(b.ord||0));
     return {...meta,course:blocks.some(b=>b.courseKey),blocks};
@@ -946,22 +971,36 @@ function renderToday(){
   }else if(plan.off){
     list.innerHTML='<div class="offmsg">今天已標記有事,不排任務。<br>本週的跑步與課程夜已自動重排。</div>';
   }
+  const skips=S.skipBlk[key]||[];
   plan.blocks.forEach((b,i)=>{
     const done=(h.blk||[]).includes(i);
+    const skipped=skips.includes(i);
     const el=document.createElement('div');
     el.className='blk'+(done?' done':'');
+    if(skipped)el.style.opacity='0.4';
     el.innerHTML='<div class="time">'+b.time+'</div>'+
-      '<div class="bd"><div class="ttl"><span class="tag t-'+b.type+'">'+TAGN[b.type]+'</span>'+b.ttl+'</div>'+
+      '<div class="bd"><div class="ttl"><span class="tag t-'+b.type+'">'+TAGN[b.type]+'</span>'+b.ttl+(skipped?'(已跳過)':'')+'</div>'+
       '<div class="sub">'+b.sub+'</div></div>'+
-      '<button class="chk">✓</button>';
-    el.querySelector('.chk').onclick=()=>{
+      (skipped?'':'<button class="skp" style="flex:none;align-self:center;width:26px;height:26px;border:1.5px solid var(--line);border-radius:50%;background:none;color:var(--ink-faint);font-size:12px;cursor:pointer;margin-right:4px">✕</button>')+
+      '<button class="chk" style="'+(skipped?'display:none':'')+'">✓</button>';
+    if(skipped){
+      el.onclick=()=>{const at=skips.indexOf(i);skips.splice(at,1);save();renderAll()};
+    }else{
+      el.querySelector('.skp').onclick=()=>{
+        S.skipBlk[key]=S.skipBlk[key]||[];
+        S.skipBlk[key].push(i);
+        toast('已跳過:'+b.ttl+'(其他照常・點該列可恢復)');
+        save(); renderAll();
+      };
+    }
+    if(!skipped)el.querySelector('.chk').onclick=()=>{
       h.blk=h.blk||[];
       const at=h.blk.indexOf(i);
       if(at>=0){h.blk.splice(at,1); h[b.type]=Math.max(0,(h[b.type]||0)-1);
         if(b.km)h.km=Math.max(0,(h.km||0)-b.km);}
       else{h.blk.push(i); h[b.type]=(h[b.type]||0)+1;
         if(b.km)h.km=(h.km||0)+b.km;
-        toast('已完成:'+b.ttl);}
+        toast(b.drill?'完成!記得在下方按 ＋5 登記張數':'已完成:'+b.ttl);}
       save(); renderAll();
     };
     list.appendChild(el);
@@ -991,7 +1030,7 @@ function renderToday(){
     const c=document.createElement('div');c.className='card';
     c.innerHTML='<div class="drill"><div class="lbl">'+nm+
       '<small>快速計數:每畫完 5 個按一下,會累計進總進度</small></div>'+
-      '<div class="right"><span class="count">'+S[b.drill]+'</span><button data-add="'+b.drill+'">＋5</button></div></div>';
+      '<div class="right"><span class="count">'+S[b.drill]+'</span><button data-sub="'+b.drill+'" style="border-color:var(--line);color:var(--ink-faint)">−5</button><button data-add1="'+b.drill+'" style="border-color:var(--line)">＋1</button><button data-add="'+b.drill+'">＋5</button></div></div>';
     tc.appendChild(c);
   });
   /* 課程夜:課表卡(三門課自選) */
@@ -1145,11 +1184,27 @@ function renderProg(){
     }
     const qPct=qAll?Math.round(qDone/qAll*100):0;
     mc.style.display='block';
+    /* 動態配速:目標不變,剩多少除以剩餘時間,落後自動變緊 */
+    const dEnd=new Date(2026,11,31);
+    let wkndLeft=0;for(let d=new Date(now);d<=dEnd;d.setDate(d.getDate()+1)){if(d.getDay()===0||d.getDay()===6)wkndLeft++}
+    const wknds=Math.max(1,Math.round(wkndLeft/2));
+    const pace=[];
+    if(S.done<20)pace.push('主題:剩 '+(20-S.done)+' 張・'+wknds+' 個週末 → 每週末約 '+(Math.ceil((20-S.done)/wknds*10)/10)+' 張');
+    if(ym<='2026-08'&&S.skull<100){
+      const wks=Math.max(1,Math.ceil((new Date(2026,7,31)-now)/(7*86400000)));
+      pace.push('頭骨:剩 '+(100-S.skull)+' 顆・'+wks+' 週 → 每週約 '+Math.ceil((100-S.skull)/wks)+' 顆');
+    }
+    if(S.leg<120){
+      const wks=Math.max(1,Math.ceil((dEnd-now)/(7*86400000)));
+      pace.push('腿臀足:剩 '+(120-S.leg)+' 組・'+wks+' 週 → 每週約 '+Math.ceil((120-S.leg)/wks)+' 組');
+    }
     mc.innerHTML='<div class="eyebrow">'+(now.getMonth()+1)+' 月主攻</div>'+
       '<h3>'+mp.focus+'</h3>'+
       '<div class="tlist">'+mp.targets.map(t=>'<div class="titem"><div class="no">・</div><div>'+t+'</div></div>').join('')+'</div>'+
       '<div class="progress" style="margin-top:10px"><div class="top"><b>本月課程隊列</b><span>'+qDone+' / '+qAll+' 課('+qPct+'%)</span></div>'+
-      '<div class="bar"><i style="width:'+qPct+'%"></i></div></div>';
+      '<div class="bar"><i style="width:'+qPct+'%"></i></div></div>'+
+      '<div class="eyebrow" style="margin-top:12px">目前配速(有事日多,這裡自動變緊)</div>'+
+      '<div class="tlist">'+pace.map(t=>'<div class="titem"><div class="no">→</div><div>'+t+'</div></div>').join('')+'</div>';
   }else{mc.style.display='none'}
   document.getElementById('progText').textContent=S.done+' / 20';
   document.getElementById('progBar').style.width=(S.done/20*100)+'%';
@@ -1221,9 +1276,18 @@ function renderSet(){
 
 /* ═══════════ 事件 ═══════════ */
 function bindAdd(scope){
+  const NM={skull:'頭骨',hand:'手部',leg:'腿臀足',torso:'軀幹透視'};
   scope.querySelectorAll('button[data-add]').forEach(b=>{
     b.onclick=()=>{const k=b.dataset.add;S[k]+=5;
-      toast({skull:'頭骨',hand:'手部',leg:'腿臀足',torso:'軀幹透視'}[k]+' +5,累計 '+S[k]);save();renderAll()};
+      toast(NM[k]+' +5,累計 '+S[k]);save();renderAll()};
+  });
+  scope.querySelectorAll('button[data-add1]').forEach(b=>{
+    b.onclick=()=>{const k=b.dataset.add1;S[k]+=1;
+      toast(NM[k]+' +1,累計 '+S[k]);save();renderAll()};
+  });
+  scope.querySelectorAll('button[data-sub]').forEach(b=>{
+    b.onclick=()=>{const k=b.dataset.sub;S[k]=Math.max(0,S[k]-5);
+      toast(NM[k]+' −5,累計 '+S[k]);save();renderAll()};
   });
 }
 document.querySelectorAll('nav button').forEach(b=>{
@@ -1238,6 +1302,7 @@ document.getElementById('shuffleBtn').onclick=()=>{
   const key=dk(new Date());
   S.salt[key]=(S.salt[key]||0)+1;
   delete (S.history[key]||{}).blk;
+  delete S.skipBlk[key];
   save(); renderAll(); toast('已換一組順序');
 };
 document.getElementById('lightBtn').onclick=()=>{
@@ -1388,7 +1453,10 @@ let pvDate=null;
 function openPreview(d){pvDate=new Date(d);pvDate.setHours(0,0,0,0);drawPreview();
   document.getElementById('pvModal').classList.add('on')}
 function drawPreview(){
+  const today=new Date();today.setHours(0,0,0,0);
+  if(pvDate>today)SIM_WATCHED=simulateTo(pvDate);
   const p=planDay(pvDate);
+  SIM_WATCHED=null;
   document.getElementById('pvTitle').textContent=(pvDate.getMonth()+1)+'/'+pvDate.getDate()+'(週'+WD[pvDate.getDay()]+')';
   document.getElementById('pvType').textContent=
     p.pre?'計畫未開始':(p.off?'有事日':(p.light?'輕量日':(p.wknd?'週末全日排程':(p.eng?'英文課日':(p.course?'課程夜':(p.run?'跑步日':'速寫夜'))))));
