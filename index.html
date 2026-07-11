@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今晚做什麼</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF8;--ink:#1A1A1A;--ink-soft:#4A4A46;--ink-faint:#8A887F;
+    --line:#D8D6D0;--line-soft:#EAE8E2;
+    --green:#3D8B5F;--yellow:#C9962E;--red:#BB4430;--blue:#3E6B8F;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:"Noto Sans TC",-apple-system,"PingFang TC",sans-serif;
+    background:var(--paper);color:var(--ink);line-height:1.6;
+    max-width:560px;margin:0 auto;padding:18px 16px 90px;
+  }
+  header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:3px solid var(--ink);padding-bottom:10px;margin-bottom:14px}
+  header h1{font-family:"Noto Serif TC",serif;font-weight:900;font-size:22px;letter-spacing:2px}
+  header .date{font-size:13px;color:var(--ink-soft);font-weight:500}
+
+  nav{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:2px solid var(--ink);
+    display:flex;max-width:560px;margin:0 auto;z-index:50}
+  nav button{flex:1;padding:13px 0 max(13px,env(safe-area-inset-bottom));background:none;border:none;
+    font-family:inherit;font-size:14px;font-weight:700;color:var(--ink-faint);cursor:pointer;letter-spacing:1px}
+  nav button.on{color:var(--ink);position:relative}
+  nav button.on::before{content:"";position:absolute;top:-2px;left:20%;right:20%;height:3px;background:var(--ink)}
+
+  .view{display:none}.view.on{display:block}
+  .eyebrow{font-size:11px;letter-spacing:3px;color:var(--ink-faint);font-weight:700;margin-bottom:6px}
+
+  .plan{border-left:3px solid var(--ink);margin:14px 0 0 6px;padding-left:0}
+  .blk{display:flex;gap:12px;padding:12px 0 12px 14px;border-bottom:1px solid var(--line-soft);position:relative}
+  .blk::before{content:"";position:absolute;left:-7px;top:19px;width:11px;height:11px;border-radius:50%;
+    background:var(--paper);border:2.5px solid var(--ink)}
+  .blk.done::before{background:var(--ink)}
+  .blk .time{width:88px;flex:none;font-size:12.5px;color:var(--ink-soft);font-weight:700;padding-top:2px;font-variant-numeric:tabular-nums}
+  .blk .bd{flex:1;min-width:0}
+  .blk .ttl{font-family:"Noto Serif TC",serif;font-weight:700;font-size:16.5px}
+  .blk.done .ttl{color:var(--ink-faint);text-decoration:line-through}
+  .blk .sub{font-size:13px;color:var(--ink-soft);margin-top:2px}
+  .blk .chk{flex:none;align-self:center;width:34px;height:34px;border:2px solid var(--ink);border-radius:50%;
+    background:none;font-size:16px;cursor:pointer;color:transparent}
+  .blk.done .chk{background:var(--ink);color:var(--paper)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:1px;padding:1px 7px;border:1.5px solid currentColor;border-radius:3px;margin-right:6px;vertical-align:2px}
+  .t-run{color:var(--green)}.t-draw{color:var(--red)}.t-eng{color:var(--blue)}.t-sub{color:var(--ink-faint)}.t-fun{color:var(--yellow)}
+
+  .rowbtns{display:flex;gap:10px;margin-top:16px}
+  .rowbtns button{flex:1;padding:11px 0;font-family:inherit;font-size:14px;font-weight:700;
+    border:2px solid var(--ink);background:none;cursor:pointer;border-radius:4px;letter-spacing:1px}
+  .rowbtns button.ghost{border-color:var(--line);color:var(--ink-soft)}
+  .lightnote{margin-top:12px;font-size:13px;color:var(--yellow);font-weight:700;display:none}
+  .coach{margin:10px 0 2px;border-left:4px solid var(--yellow);padding:8px 12px;
+    font-family:"Noto Serif TC",serif;font-weight:700;font-size:14.5px;color:var(--ink-soft);
+    background:#F5F3EC;border-radius:0 5px 5px 0}
+  .coach::before{content:"COACH";display:block;font-family:"Noto Sans TC",sans-serif;
+    font-size:10px;letter-spacing:3px;color:var(--ink-faint);margin-bottom:2px}
+  .offmsg{padding:26px 14px;text-align:center;color:var(--ink-faint);font-size:14px;font-weight:700}
+  .wkrow .offT{flex:none;font-size:11px;padding:3px 9px;border:1.5px solid var(--line);background:none;
+    border-radius:3px;color:var(--ink-faint);font-family:inherit;font-weight:700;cursor:pointer}
+  .wkrow .offT.isOff{border-color:var(--yellow);color:var(--yellow)}
+
+  .card{border:2px solid var(--ink);border-radius:6px;padding:14px 16px;margin-top:16px}
+  .card h3{font-family:"Noto Serif TC",serif;font-size:15px;margin-bottom:6px}
+  .card .meta{font-size:13px;color:var(--ink-soft)}
+  .card .ban{font-size:13px;color:var(--red);font-weight:700;margin-top:4px}
+  .drill{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+  .drill:last-child{border-bottom:none}
+  .drill .lbl{font-weight:700;font-size:14.5px}
+  .drill .lbl small{display:block;font-weight:400;font-size:12px;color:var(--ink-faint)}
+  .drill .right{display:flex;align-items:center;gap:10px}
+  .drill .count{font-family:"Noto Serif TC",serif;font-weight:900;font-size:22px;min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
+  .drill button{border:2px solid var(--ink);background:none;font-family:inherit;font-weight:700;font-size:14px;
+    padding:7px 13px;border-radius:4px;cursor:pointer}
+  .drill button:active{background:var(--ink);color:var(--paper)}
+
+  .wk{margin-top:8px}
+  .wkrow{display:flex;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line-soft);align-items:center}
+  .wkrow.today{background:#F1EFE8;border-radius:5px;padding-left:8px;padding-right:8px}
+  .wkrow .d{width:64px;flex:none;font-weight:700;font-size:13.5px}
+  .wkrow .d small{display:block;font-weight:400;font-size:11px;color:var(--ink-faint)}
+  .wkrow .acts{flex:1;display:flex;gap:6px;flex-wrap:wrap}
+  .chip{font-size:12px;font-weight:700;padding:2px 9px;border-radius:3px;border:1.5px solid currentColor}
+  .c-run{color:var(--green)}.c-draw{color:var(--red)}.c-eng{color:var(--blue)}.c-sub{color:var(--ink-faint)}.c-fun{color:var(--yellow)}
+  .wkrow .st{width:26px;flex:none;text-align:center;font-size:15px;color:var(--green);font-weight:900}
+
+  .progress{margin-top:18px}
+  .progress .top{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;margin-bottom:6px}
+  .bar{height:12px;border:2px solid var(--ink);border-radius:6px;overflow:hidden;background:var(--paper)}
+  .bar i{display:block;height:100%;background:var(--ink)}
+  .stat3{display:flex;gap:10px;margin-top:16px}
+  .stat3 .s{flex:1;border:2px solid var(--ink);border-radius:6px;padding:10px 8px;text-align:center}
+  .stat3 .s b{font-family:"Noto Serif TC",serif;font-size:22px;font-weight:900;display:block;font-variant-numeric:tabular-nums}
+  .stat3 .s span{font-size:12px;color:var(--ink-soft);font-weight:700}
+  details{margin-top:16px;border-top:2px solid var(--line);padding-top:10px}
+  summary{font-weight:700;cursor:pointer;font-size:14px}
+  .tlist{margin-top:8px}
+  .titem{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13.5px}
+  .titem .no{font-family:"Noto Serif TC",serif;font-weight:900;width:28px;flex:none}
+  .titem.doneT{color:var(--ink-faint)}
+  .titem.doneT .no{color:var(--green)}
+  .titem.cur{background:#F1EFE8;border-radius:4px;padding-left:6px;padding-right:6px}
+
+  .cal{margin-top:12px;border:2px solid var(--ink);border-radius:6px;padding:12px}
+  .cal .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .cal .mh b{font-family:"Noto Serif TC",serif;font-size:16px}
+  .cal .mh button{border:2px solid var(--ink);background:none;width:32px;height:32px;border-radius:4px;font-size:16px;cursor:pointer;font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+  .grid .h{font-size:11px;color:var(--ink-faint);font-weight:700;padding:3px 0}
+  .grid .c{min-height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:5px;
+    font-size:14px;font-weight:500;cursor:pointer;border:1.5px solid transparent;padding:3px 0}
+  .grid .c .tm{font-size:9px;line-height:1;font-weight:700}
+  .grid .c.dim{color:var(--line)}
+  .grid .c.eng{background:var(--blue);color:#fff;font-weight:700}
+  .grid .c.todayC{border-color:var(--ink)}
+  .set{display:flex;justify-content:space-between;align-items:center;padding:13px 2px;border-bottom:1px solid var(--line-soft)}
+  .set .lbl{font-weight:700;font-size:14.5px}
+  .set .lbl small{display:block;font-weight:400;font-size:12px;color:var(--ink-faint)}
+  .set select,.set input{font-family:inherit;font-size:15px;padding:6px 10px;border:2px solid var(--ink);border-radius:4px;background:var(--paper);width:100px;text-align:center}
+  .note{font-size:12px;color:var(--ink-faint);margin-top:14px;line-height:1.7}
+
+  .modal{position:fixed;inset:0;background:rgba(26,26,26,.45);display:none;align-items:flex-end;justify-content:center;z-index:99}
+  .modal.on{display:flex}
+  .sheet{background:var(--paper);border-radius:14px 14px 0 0;padding:22px 20px 34px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto}
+  .sheet h2{font-family:"Noto Serif TC",serif;font-weight:900;font-size:19px;margin-bottom:4px}
+  .sheet p{font-size:13px;color:var(--ink-soft);margin-bottom:14px}
+  .sheet .set input{width:96px}
+  .sheet .go{width:100%;margin-top:18px;padding:13px 0;background:var(--ink);color:var(--paper);
+    border:none;border-radius:6px;font-family:inherit;font-size:15px;font-weight:700;letter-spacing:2px;cursor:pointer}
+
+  .toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--paper);padding:9px 18px;border-radius:6px;font-size:13.5px;font-weight:700;
+    opacity:0;pointer-events:none;transition:.25s;z-index:98;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .undo{display:none;width:100%;margin-top:10px;padding:9px 0;border:2px solid var(--line);background:none;
+    border-radius:4px;font-family:inherit;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>今晚做什麼</h1>
+  <div class="date" id="dateLabel">—</div>
+</header>
+
+<!-- ══ 今晚 ══ -->
+<div class="view on" id="v-today">
+  <div class="eyebrow" id="todayEyebrow">TONIGHT · 19:30 – 23:00</div>
+  <div class="coach" id="coachBox"></div>
+  <div class="plan" id="planList"></div>
+  <div class="lightnote" id="lightNote">已切換輕量日——今天只求不斷線,不求產量。</div>
+  <div class="rowbtns" style="flex-wrap:wrap">
+    <button id="shuffleBtn" style="flex:1 1 46%">換一組</button>
+    <button class="ghost" id="lateBtn" style="flex:1 1 46%">今天加班</button>
+    <button class="ghost" id="lightBtn" style="flex:1 1 46%">今天太累</button>
+    <button class="ghost" id="offBtn" style="flex:1 1 46%">今天有事</button>
+    <button class="ghost" id="rainBtn" style="flex:1 1 100%">下雨,改室內運動</button>
+  </div>
+  <div id="todayCards"></div>
+</div>
+
+<!-- ══ 本週 ══ -->
+<div class="view" id="v-week">
+  <div class="eyebrow">THIS WEEK</div>
+  <div class="wk" id="weekList"></div>
+  <div class="note">點任何一天可預覽那天的完整排程(不影響紀錄)。跑步日與課程夜由系統每週輪換排定(避開英文課日)。跑步距離每 3 週自動微加量。✓ 表示當天有完成紀錄。</div>
+</div>
+
+<!-- ══ 進度 ══ -->
+<div class="view" id="v-prog">
+  <div class="eyebrow">THIS WEEK 完成狀況</div>
+  <div class="stat3">
+    <div class="s"><b id="wRun">0/2</b><span>跑步</span></div>
+    <div class="s"><b id="wKm">0</b><span>公里</span></div>
+    <div class="s"><b id="wDraw">0</b><span>畫圖日</span></div>
+    <div class="s"><b id="wEng">0</b><span>英文</span></div>
+  </div>
+
+  <div class="card" id="monthCard" style="margin-top:16px"></div>
+
+  <div class="progress">
+    <div class="top"><b>特訓 20 張進度</b><span id="progText">0 / 20</span></div>
+    <div class="bar"><i id="progBar" style="width:0%"></i></div>
+    <div class="note" id="deadline">—</div>
+  </div>
+
+  <div class="card">
+    <div class="drill">
+      <div class="lbl">頭骨速寫<small>目標 8 月底 100 顆</small></div>
+      <div class="right"><span class="count" id="skullCount">0</span><button data-add="skull">＋5</button></div>
+    </div>
+    <div class="drill">
+      <div class="lbl">手部速寫<small>9 月起每週一晚維持・無硬指標</small></div>
+      <div class="right"><span class="count" id="handCount">0</span><button data-add="hand">＋5</button></div>
+    </div>
+    <div class="drill">
+      <div class="lbl">腿臀足速寫<small>目標 12 月底 120 組・10 月起加量</small></div>
+      <div class="right"><span class="count" id="legCount">0</span><button data-add="leg">＋5</button></div>
+    </div>
+    <div class="drill">
+      <div class="lbl">軀幹・透視速寫<small>8–10 月主攻・自然累計無硬指標</small></div>
+      <div class="right"><span class="count" id="torsoCount">0</span><button data-add="torso">＋5</button></div>
+    </div>
+    <div class="note" style="margin-top:8px">「＋5」是快速計數鈕:每畫完 5 個速寫按一下,數字直接累計進總進度,不用另外存檔。</div>
+  </div>
+
+  <details>
+    <summary>全部 20 個主題 ▾</summary>
+    <div class="tlist" id="themeList"></div>
+  </details>
+  <button class="undo" id="undoBtn">復原上一張完稿</button>
+</div>
+
+<!-- ══ 設定 ══ -->
+<div class="view" id="v-set">
+  <div class="eyebrow">MONTHLY SETUP</div>
+  <div class="cal">
+    <div class="mh">
+      <button id="calPrev">‹</button>
+      <b id="calTitle">—</b>
+      <button id="calNext">›</button>
+    </div>
+    <div class="grid" id="calGrid"></div>
+    <div class="note" style="margin-top:8px">點日期設定該天的<b style="color:var(--blue)">英文課時間</b>——每天可以不同。月初設一次,臨時調課隨時點改。</div>
+  </div>
+
+  <div class="set" style="margin-top:14px">
+    <div class="lbl">預設上課時間<small>新增課程日時自動帶入,可逐日修改</small></div>
+    <input type="time" id="engTime" value="20:00">
+  </div>
+  <div class="set">
+    <div class="lbl">英文課時長</div>
+    <select id="engDur"><option value="50">50 分</option><option value="60">60 分</option><option value="90">90 分</option><option value="120">120 分</option></select>
+  </div>
+  <div class="set">
+    <div class="lbl">每週跑步次數<small>保底 2 次,系統自動排日</small></div>
+    <select id="runSel"><option value="2">2 次</option><option value="3">3 次</option></select>
+  </div>
+  <div class="set">
+    <div class="lbl">跑步基準距離<small>每 3 週自動 +0.5km 漸進</small></div>
+    <select id="runBase"><option value="2">2 km</option><option value="3">3 km</option><option value="4">4 km</option><option value="5">5 km</option></select>
+  </div>
+  <div class="set">
+    <div class="lbl">課程夜(Proko/Force)<small>每週專門上課跟練的晚數</small></div>
+    <select id="courseSel"><option value="1">1 晚</option><option value="2">2 晚</option></select>
+  </div>
+  <div class="set">
+    <div class="lbl">頭骨累計<small>手動校正</small></div>
+    <input type="number" id="skullEdit" min="0">
+  </div>
+  <div class="set">
+    <div class="lbl">手部累計<small>手動校正</small></div>
+    <input type="number" id="handEdit" min="0">
+  </div>
+  <div class="set">
+    <div class="lbl">腿臀足累計<small>手動校正</small></div>
+    <input type="number" id="legEdit" min="0">
+  </div>
+  <div class="set">
+    <div class="lbl">軀幹・透視累計<small>手動校正</small></div>
+    <input type="number" id="torsoEdit" min="0">
+  </div>
+  <div class="set">
+    <div class="lbl">已完稿張數<small>0–20</small></div>
+    <input type="number" id="doneEdit" min="0" max="20">
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>週末活動庫</h3>
+    <div class="note" style="margin-top:0">每週輪流由週六或週日當休閒日,系統從這裡輪替挑一項排入你設定的時間區間,其餘時段照排完稿與跑步。</div>
+    <div id="actList"></div>
+    <div class="set" style="border-bottom:none;flex-wrap:wrap;gap:8px">
+      <input type="text" id="actName" placeholder="活動名稱" style="width:100%;text-align:left">
+      <input type="time" id="actS" value="14:00">
+      <span style="color:var(--ink-faint)">到</span>
+      <input type="time" id="actE" value="17:00">
+      <select id="actD" style="width:84px"><option value="both">六日皆可</option><option value="sat">限週六</option><option value="sun">限週日</option></select>
+    </div>
+    <div class="rowbtns" style="margin-top:8px"><button id="actAdd">新增活動</button></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>展覽・活動情報</h3>
+    <div class="note" style="margin-top:0">週末休閒卡的「查北部展覽」會即時搜尋檔期(需在 Claude 網站內開啟)。以下是常用檔期網站,任何時候都可以直接點:</div>
+    <div class="tlist">
+      <div class="titem"><div class="no">館</div><div><a href="https://www.tfam.museum/Exhibition/Exhibition.aspx?ddlLang=zh-tw" target="_blank" style="color:var(--blue)">台北市立美術館・當期展覽</a></div></div>
+      <div class="titem"><div class="no">館</div><div><a href="https://www.mocataipei.org.tw/tw" target="_blank" style="color:var(--blue)">MOCA 台北當代藝術館</a></div></div>
+      <div class="titem"><div class="no">演</div><div><a href="https://npac-ntch.org/programs" target="_blank" style="color:var(--blue)">兩廳院・節目總覽</a></div></div>
+      <div class="titem"><div class="no">影</div><div><a href="https://www.spot.org.tw" target="_blank" style="color:var(--blue)">光點台北・放映時刻</a></div></div>
+      <div class="titem"><div class="no">票</div><div><a href="https://www.opentix.life" target="_blank" style="color:var(--blue)">OPENTIX・藝文活動總覽</a></div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>雲端同步(GitHub Gist)</h3>
+    <div class="note" style="margin-top:0">手機打卡,電腦自動跟上。資料存在你自己 GitHub 帳號的<b>私人</b> Gist;鑰匙只存這台裝置,不會上傳。每台要同步的裝置各貼一次鑰匙。</div>
+    <div class="set" style="flex-wrap:wrap;gap:8px">
+      <input type="password" id="syncToken" placeholder="貼上 ghp_ 開頭的權杖" style="width:100%;text-align:left">
+    </div>
+    <div class="rowbtns"><button id="syncEnable">啟用同步</button><button class="ghost" id="syncNow">立即同步</button></div>
+    <div class="note" id="syncStatus">狀態:未啟用</div>
+    <div class="note">申請鑰匙(3 分鐘):GitHub 右上頭像 → Settings → 最下面 Developer settings → Personal access tokens → <b>Tokens (classic)</b> → Generate new token (classic) → Note 隨便填、Expiration 選 No expiration、<b>只勾 gist</b> → Generate → 複製 ghp_ 開頭那串貼到上面。</div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>資料備份</h3>
+    <div class="note" style="margin-top:0">173 天計畫的保險。定期「匯出」把備份碼存到記事本;換裝置或資料遺失時「匯入」貼回即可完整還原。</div>
+    <div class="rowbtns"><button id="bkExport">匯出備份</button><button class="ghost" id="bkImport">匯入備份</button></div>
+  </div>
+
+  <div class="note">所有資料自動雙重保存(此環境 + 瀏覽器本機)。此工具已合併原「今天畫什麼」全部功能。</div>
+</div>
+
+<nav>
+  <button class="on" data-v="v-today">今晚</button>
+  <button data-v="v-week">本週</button>
+  <button data-v="v-prog">進度</button>
+  <button data-v="v-set">設定</button>
+</nav>
+
+<!-- 首次設定 -->
+<div class="modal" id="setupModal">
+  <div class="sheet">
+    <h2>接上你的特訓進度</h2>
+    <p>輸入目前累計,之後打開就直接看今晚行程。</p>
+    <div class="set"><div class="lbl">頭骨速寫累計</div><input type="number" id="su-skull" value="0" min="0"></div>
+    <div class="set"><div class="lbl">手部速寫累計</div><input type="number" id="su-hand" value="0" min="0"></div>
+    <div class="set"><div class="lbl">腿臀足速寫累計</div><input type="number" id="su-leg" value="0" min="0"></div>
+    <div class="set"><div class="lbl">已完稿張數 (0–20)</div><input type="number" id="su-done" value="0" min="0" max="20"></div>
+    <div class="set"><div class="lbl">英文課開始時間</div><input type="time" id="su-engTime" value="20:00"></div>
+    <button class="go" id="setupGo">開始使用</button>
+  </div>
+</div>
+
+<!-- 單日英文課時間 -->
+<div class="modal" id="engModal">
+  <div class="sheet">
+    <h2 id="emTitle">—</h2>
+    <p>設定這一天的英文課時間(每天可以不同)。</p>
+    <div class="set"><div class="lbl">上課時間</div><input type="time" id="emTime"></div>
+    <div class="rowbtns">
+      <button id="emSave">儲存</button>
+      <button class="ghost" id="emDel">移除課程</button>
+    </div>
+    <button class="undo" id="emCancel" style="display:block;margin-top:12px">取消</button>
+  </div>
+</div>
+
+<!-- 備份匯出/匯入 -->
+<div class="modal" id="bkModal">
+  <div class="sheet">
+    <h2 id="bkTitle">備份</h2>
+    <p id="bkHint">—</p>
+    <textarea id="bkText" style="width:100%;height:140px;border:2px solid var(--ink);border-radius:5px;
+      font-family:monospace;font-size:11px;padding:8px;background:var(--paper)"></textarea>
+    <div class="rowbtns"><button id="bkAction">—</button></div>
+    <button class="undo" id="bkClose" style="display:block;margin-top:12px">關閉</button>
+  </div>
+</div>
+
+<!-- 預覽後台:看任何一天的排程,不寫入紀錄 -->
+<div class="modal" id="pvModal">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <button id="pvPrev" style="border:2px solid var(--ink);background:none;width:36px;height:36px;border-radius:4px;font-size:16px;font-weight:700;cursor:pointer">‹</button>
+      <h2 id="pvTitle" style="margin:0">—</h2>
+      <button id="pvNext" style="border:2px solid var(--ink);background:none;width:36px;height:36px;border-radius:4px;font-size:16px;font-weight:700;cursor:pointer">›</button>
+    </div>
+    <div class="eyebrow" id="pvType">—</div>
+    <div class="coach" id="pvCoach"></div>
+    <div class="plan" id="pvList"></div>
+    <div class="note">預覽模式:只是給你看排程長怎樣,不會寫入任何紀錄。用 ‹ › 可以往前後翻日期。</div>
+    <button class="undo" id="pvClose" style="display:block;margin-top:12px">關閉</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════ 資料 ═══════════ */
+const THEMES=[
+ {n:1, t:"自畫像・四分之三側面・單一硬光", g:"顱腔體積、眼窩左右一致性", b:"整個頭部禁虛化", p:1},
+ {n:2, t:"仰角人像(由下往上 30°)", g:"下顎底面、顴骨下緣、鼻底三角", b:"下顎至頸部接合區", p:1},
+ {n:3, t:"俯角人像(由上往下 30°)", g:"頭頂弧面、額頭透視、往下看的眼瞼", b:"額頭至眉弓", p:1},
+ {n:4, t:"老人肖像(70 歲以上)", g:"皮膚貼骨、頭骨顯形", b:"顴骨至眼窩一帶", p:1},
+ {n:5, t:"光頭人像", g:"顱型全裸上場,與主題 1 對照", b:"整顆頭", p:1},
+ {n:6, t:"強烈表情(大笑或吶喊)", g:"表情肌拉扯、打破不取悅舒適圈", b:"嘴與法令紋區", p:1},
+ {n:7, t:"雙手特寫(交握或緊扣)", g:"直面空白卷,手佔畫面 60%+", b:"全畫面禁虛化", p:2},
+ {n:8, t:"手與臉(托腮/遮眼/撫頸)", g:"手臉比例、接觸點皮膚擠壓", b:"手＋手臉接觸點", p:2},
+ {n:9, t:"背部特寫・肩胛與脊椎", g:"性感命題結構重製版", b:"肩胛骨區", p:2},
+ {n:10,t:"扭轉軀幹(contrapposto)", g:"胸腔與骨盆反向扭轉", b:"腰腹扭轉段", p:2},
+ {n:11,t:"坐姿全身(正面偏側)", g:"大腿朝鏡頭的透視壓縮", b:"骨盆至膝蓋", p:2},
+ {n:12,t:"跳躍・極端仰角(命題02重製)", g:"殘影照用,但關節手腳全清晰", b:"雙手雙腳", p:2},
+ {n:13,t:"雙人構圖(依靠或對視)", g:"空間前後、接觸點重量傳遞", b:"兩人接觸點", p:2},
+ {n:14,t:"凝視與冥想(命題03完成版)", g:"眼部全畫面最高銳度、暗部有結構", b:"雙眼與眼窩", p:3},
+ {n:15,t:"植物 × 手", g:"生活風格第一張:有機形體vs手的結構", b:"手與植物接觸段", p:3},
+ {n:16,t:"逆光全身", g:"實的骨、虛的皮——完整宣言", b:"剪影輪廓形體要準", p:3},
+ {n:17,t:"薄紗與身體", g:"敢遮是因為看得見底下結構", b:"紗下至少一處轉折全清晰", p:3},
+ {n:18,t:"動態髮絲 × 清晰五官", g:"兩套語言正面對撞", b:"五官全部", p:3},
+ {n:19,t:"自選命題(種子庫最痛的一個)", g:"結構服務真正想說的話", b:"自訂,但必須有", p:3},
+ {n:20,t:"年度代表作(Expt. 大幅主視覺)", g:"集大成,可跨兩週、上限15hr", b:"手＋臉", p:3},
+];
+const PHASE_NAME={1:"PHASE 1・頭骨與臉",2:"PHASE 2・身體與手",3:"PHASE 3・整合與代表作"};
+/* 課綱:四門課完整課表(每堂課名+分鐘數),照順序推進;上完一輪進入 1.25x 複習 */
+const COURSE_DATA={"anatomy":{"name":"Proko・Anatomy of the Human Body","lessons":[[15,"Introduction to Human Anatomy for Artists","Torso/The Basics"],[15,"How to Do an Anatomy Tracing","Torso/The Basics"],[13,"Anatomy Tracing Assignment Example 2","Torso/The Basics"],[11,"Anatomy Tracing Assignment Example 3","Torso/The Basics"],[8,"Anatomy Tracing Assignment Example 4","Torso/The Basics"],[9,"Anatomy Tracing Assignment Example 5","Torso/The Basics"],[7,"The Language of Anatomy","Torso/The Basics"],[12,"The 6 Types of Joints","Torso/The Basics"],[6,"Types of Joints Assignment Example 1","Torso/The Basics"],[4,"Simplifying Joints in Perspective - Assignment Example 2","Torso/The Basics"],[4,"Types of Joints Assignment Example 3","Torso/The Basics"],[5,"Types of Joints Assignment Example 4","Torso/The Basics"],[6,"Types of Joints Assignment Example 5","Torso/The Basics"],[31,"Types of Joints Assignment Example 6","Torso/The Basics"],[77,"Anatomy Critiques – Types of Joints","Torso/The Basics"],[16,"Anatomy of the Spine","Torso/Spine"],[9,"How to Draw the Spine","Torso/Spine"],[7,"Deliberate Practice – The Secret to Getting Good Fast","Torso/Spine"],[22,"Spine Assignment Examples 1-6 - Draw Skelly","Torso/Spine"],[15,"Spine Assignment Example 7-10 - Trace Models","Torso/Spine"],[31,"Spine Assignment Example 11-19 - Draw Models","Torso/Spine"],[40,"Anatomy Critiques – The Spine","Torso/Spine"],[20,"Anatomy of the Pelvis","Torso/Pelvis"],[10,"How to Draw the Pelvis from any Angle","Torso/Pelvis"],[5,"Pelvis Assignment Example 1","Torso/Pelvis"],[5,"Pelvis Assignment Example 2","Torso/Pelvis"],[5,"Pelvis Assignment Example 3","Torso/Pelvis"],[5,"Pelvis Assignment Example 4","Torso/Pelvis"],[5,"Pelvis Assignment Example 5","Torso/Pelvis"],[5,"Pelvis Assignment Example 6","Torso/Pelvis"],[47,"Anatomy Critiques – The Pelvis","Torso/Pelvis"],[15,"Anatomy of the Rib Cage","Torso/Rib Cage"],[9,"How to Draw the Rib Cage","Torso/Rib Cage"],[13,"Rib Cage Assignment Examples - Side View","Torso/Rib Cage"],[12,"Rib Cage Assignment Example - Front View","Torso/Rib Cage"],[7,"Rib Cage Assignment Example - Back View","Torso/Rib Cage"],[43,"Anatomy Critiques – The Rib Cage","Torso/Rib Cage"],[14,"Anatomy of the Shoulder Bones","Torso/Shoulder Bones"],[6,"Motion Reference – Shoulder Girdle","Torso/Shoulder Bones"],[11,"How to Draw the Shoulder Bones","Torso/Shoulder Bones"],[23,"Shoulder Bone Assignment Examples -Back View","Torso/Shoulder Bones"],[11,"Shoulder Bone Assignment Example - Side View","Torso/Shoulder Bones"],[24,"Shoulder Bone Assignment Example - Front View","Torso/Shoulder Bones"],[28,"Anatomy Critiques – The Shoulder Bones","Torso/Shoulder Bones"],[13,"Drawing Muscles: What You Need to Know","Torso/Intro to Muscles"],[6,"How to Design Muscles and Tendon","Torso/Intro to Muscles"],[16,"How to Draw Pecs – Anatomy & Form","Torso/Pecs & Breasts"],[4,"How to Draw Pecs – Form","Torso/Pecs & Breasts"],[20,"Pec Assignment Examples – Model Tracing","Torso/Pecs & Breasts"],[18,"Pec Assignment Examples – Invention","Torso/Pecs & Breasts"],[38,"Anatomy Critiques – The Pecs","Torso/Pecs & Breasts"],[12,"Common Mistakes of Drawing Breasts","Torso/Pecs & Breasts"],[5,"How to Draw Breasts – Form & Motion","Torso/Pecs & Breasts"],[5,"How to Draw Breasts – Assignment Example 1","Torso/Pecs & Breasts"],[6,"How to Draw Breasts – Assignment Example 2","Torso/Pecs & Breasts"],[12,"How to Draw Breasts Assignment Examples - Front","Torso/Pecs & Breasts"],[10,"How to Draw Breasts Assignment Examples - Side","Torso/Pecs & Breasts"],[12,"How to Draw Breasts Assignment Examples - Lying Down","Torso/Pecs & Breasts"],[7,"How to Draw Breasts Assignment Examples - Forward Lean","Torso/Pecs & Breasts"],[6,"How to Draw Breasts Assignment Example - Backward Lean","Torso/Pecs & Breasts"],[49,"Anatomy Critiques – The Breasts","Torso/Pecs & Breasts"],[19,"How to Draw Abs – Anatomy","Torso/Abs"],[6,"How to Draw Abs – Form and Motion","Torso/Abs"],[7,"How to Draw Abs – Gesture Example 1","Torso/Abs"],[7,"How to Draw Abs – Gesture Example 2","Torso/Abs"],[26,"Abs Assignment Examples - Female","Torso/Abs"],[19,"Abs Assignment Examples - Male","Torso/Abs"],[6,"Belly Buttons and More","Torso/Abs"],[43,"Anatomy Critiques – The Abs","Torso/Abs"],[8,"How to Draw Obliques – Anatomy & Motion","Torso/Obliques"],[9,"Oblique Assignment Examples Part 1 - Lean","Torso/Obliques"],[10,"Oblique Assignment Examples Part 1 - Twist","Torso/Obliques"],[16,"Oblique Assignment Examples Part 1 - Tilt","Torso/Obliques"],[7,"Obliques Assignment Examples Part 1","Torso/Obliques"],[3,"How to Draw Obliques – Physique Variations","Torso/Obliques"],[6,"How to Draw Obliques – Form","Torso/Obliques"],[3,"Internal Obliques","Torso/Obliques"],[11,"Obliques Assignment Examples Part 2 - Draw Skelly","Torso/Obliques"],[19,"Obliques Assignment Examples Part 2 - Draw Models","Torso/Obliques"],[7,"Obliques Assignment Examples Part 2","Torso/Obliques"],[41,"Anatomy Critiques – The Obliques","Torso/Obliques"],[6,"Torso Drawing Part 1 – Preparing for the Drawing with Studies","Torso/Torso Drawing"],[14,"Torso Drawing Part 2 – The Layin","Torso/Torso Drawing"],[58,"How to Draw and Shade the Human Torso","Torso/Torso Drawing"],[8,"How to Draw Shoulder Muscles – Anatomy and Motion","Torso/Shoulder Muscles"],[8,"Identifying the Shoulder Muscles","Torso/Shoulder Muscles"],[8,"How to Draw Shoulder Muscles – Form","Torso/Shoulder Muscles"],[3,"Physique Variations of the Shoulder Muscles","Torso/Shoulder Muscles"],[10,"Inventing the Shoulder Muscles","Torso/Shoulder Muscles"],[51,"Anatomy Critiques – The Shoulder Muscles","Torso/Shoulder Muscles"],[8,"How to Draw Lower Back Muscles – Anatomy and Motion","Torso/Lower Back Muscles"],[15,"How to Draw Lower Back Muscles – Form","Torso/Lower Back Muscles"],[2,"Dimples of Venus","Torso/Lower Back Muscles"],[3,"Physique Variations of the Lower Back Muscles","Torso/Lower Back Muscles"],[2,"Serratus Posterior Inferior","Torso/Lower Back Muscles"],[6,"Lower Back Assignment Example 1","Torso/Lower Back Muscles"],[6,"Lower Back Assignment Example 2","Torso/Lower Back Muscles"],[7,"Lower Back Assignment Example 3","Torso/Lower Back Muscles"],[6,"Lower Back Assignment Example 4","Torso/Lower Back Muscles"],[5,"Lower Back Assignment Example 5","Torso/Lower Back Muscles"],[5,"Lower Back Assignment Example 6","Torso/Lower Back Muscles"],[8,"Lower Back Assignment Example 7","Torso/Lower Back Muscles"],[5,"Lower Back Assignment Example 8","Torso/Lower Back Muscles"],[15,"Shading the Lower Back – Example","Torso/Lower Back Muscles"],[63,"Anatomy Critiques – The Lower Back Muscles","Torso/Lower Back Muscles"],[10,"How to Draw Upper Back Muscles – Anatomy and Motion","Torso/Upper Back Muscles"],[10,"How to Draw Upper Back Muscles – Form","Torso/Upper Back Muscles"],[3,"Physique Variations of the Upper Back Muscles","Torso/Upper Back Muscles"],[21,"Shading the Upper Back Example","Torso/Upper Back Muscles"],[41,"Upper Back Assignment Examples - Draw Models","Torso/Upper Back Muscles"],[14,"Upper Back Assignment Examples - Draw Skelly","Torso/Upper Back Muscles"],[55,"Anatomy Critiques – The Upper Back Muscles","Torso/Upper Back Muscles"],[14,"How to Draw Neck Muscles – Anatomy and Motion","Torso/Neck Muscles"],[10,"How to Draw Neck Muscles – Form","Torso/Neck Muscles"],[6,"Neck Assignment Example 1","Torso/Neck Muscles"],[7,"Neck Assignment Example 2","Torso/Neck Muscles"],[12,"Neck Assignment Example 3","Torso/Neck Muscles"],[5,"Neck Assignment Example 4","Torso/Neck Muscles"],[8,"Neck Assignment Example 5","Torso/Neck Muscles"],[8,"Neck Assignment Example 6","Torso/Neck Muscles"],[49,"Anatomy Critiques – The Neck Muscles","Torso/Neck Muscles"],[11,"How to Draw Arm Bones – Anatomy for Artists","Arms/Arm Bones"],[3,"Arm Bones Assignment Example 1","Arms/Arm Bones"],[4,"Arm Bones Assignment Example 2","Arms/Arm Bones"],[2,"Arm Bones Assignment Example 3 – Tracing Demo","Arms/Arm Bones"],[3,"Arm Bones Assignment Example 4","Arms/Arm Bones"],[3,"Arm Bones Assignment Example 5","Arms/Arm Bones"],[2,"Arm Bones Assignment Example 6","Arms/Arm Bones"],[23,"Anatomy Critiques – The Arm Bones","Arms/Arm Bones"],[10,"How to Draw Hand Bones – Anatomy for Artists","Arms/Hand Bones"],[8,"How to Draw Dynamic Hand Bones","Arms/Hand Bones"],[14,"Hand Bones Assignment Example","Arms/Hand Bones"],[7,"Hand Bones Assignment Example 2","Arms/Hand Bones"],[7,"Hand Bones Assignment Example 3","Arms/Hand Bones"],[11,"Hand Bones Assignment Example 4","Arms/Hand Bones"],[11,"Hand Bones Assignment Example 5","Arms/Hand Bones"],[31,"Anatomy Critiques - Hand Bones","Arms/Hand Bones"],[12,"How to Draw Deltoids – Anatomy for Artists","Arms/Deltoids"],[4,"Deltoids Assignment Example","Arms/Deltoids"],[3,"Deltoids Assignment Example 2","Arms/Deltoids"],[4,"Deltoids Assignment Example 3","Arms/Deltoids"],[4,"Deltoids Assignment Example 4","Arms/Deltoids"],[4,"Deltoids Assignment Example 5","Arms/Deltoids"],[3,"Deltoids Assignment Example 6","Arms/Deltoids"],[81,"Anatomy Critiques – The Deltoids","Arms/Deltoids"],[12,"How to Draw Biceps – Anatomy for Artists","Arms/Biceps"],[4,"Biceps Assignment Example 1","Arms/Biceps"],[6,"Biceps Assignment Example 2","Arms/Biceps"],[5,"Biceps Assignment Example 3","Arms/Biceps"],[5,"Biceps Assignment Example 4","Arms/Biceps"],[5,"Biceps Assignment Example 5","Arms/Biceps"],[6,"Biceps Assignment Example 6","Arms/Biceps"],[95,"Anatomy Critiques – The Biceps","Arms/Biceps"],[10,"How to Draw Triceps – Anatomy for Artists","Arms/Triceps"],[8,"Triceps Assignment Example","Arms/Triceps"],[6,"Triceps Assignment Example 2","Arms/Triceps"],[5,"Triceps Assignment Example 3","Arms/Triceps"],[5,"Triceps Assignment Example 4","Arms/Triceps"],[5,"Triceps Assignment Example 5","Arms/Triceps"],[6,"Triceps Assignment Example 6","Arms/Triceps"],[81,"Anatomy Critiques – The Triceps","Arms/Triceps"],[8,"How to Study Bridgman – Student Anatomy Critique","Arms/Triceps"],[18,"How To Draw Forearms – Anatomy for Artists","Arms/Forearms"],[10,"Forearm Assignment Example 1 - Drawing and Shading Forearms","Arms/Forearms"],[10,"Forearm Assignment Example 2","Arms/Forearms"],[9,"Forearm Assignment Example 3","Arms/Forearms"],[9,"Forearm Assignment Example 4","Arms/Forearms"],[10,"Forearm Assignment Example 5","Arms/Forearms"],[10,"Forearm Assignment Example 6","Arms/Forearms"],[12,"Anatomy of the Extensors","Arms/Forearms"],[10,"Anatomy of the Flexors","Arms/Forearms"],[7,"Anatomy of the Ridge Muscles","Arms/Forearms"],[12,"Shading Forearm Details","Arms/Forearms"],[85,"Anatomy Critiques – The Forearms","Arms/Forearms"],[18,"How to Draw Hands – Muscle Anatomy of the Hand","Arms/Hands"],[9,"Hand Assignment Part I Example 1","Arms/Hands"],[8,"Hand Assignment Part I Example 2","Arms/Hands"],[9,"Hand Assignment Part I Example 3","Arms/Hands"],[6,"Hand Assignment Part I Example 4","Arms/Hands"],[8,"Hand Assignment Part I Example 5","Arms/Hands"],[6,"Hand Assignment Part I Example 6","Arms/Hands"],[78,"Anatomy Critiques - Hands Part 1","Arms/Hands"],[22,"How to Draw HANDS – Details for Realistic Hands!","Arms/Hands"],[10,"Hand Assignment Part II Example 1","Arms/Hands"],[9,"Hand Assignment Part II Example 2 - Tips on Drawing and Shading Hands","Arms/Hands"],[7,"Hand Assignment Part II Example 3","Arms/Hands"],[7,"Hand Assignment Part II Example 4 - Drawing and Shading Hands","Arms/Hands"],[17,"How to Draw Hands from IMAGINATION – Step-by-Step","Arms/Hands"],[14,"Drawing Hands from Imagination – Shading and Details","Arms/Hands"],[9,"Drawing a Perfect Fist – HANDS in Action!!!","Arms/Hands"],[6,"Hands Holding Stuff N Things","Arms/Hands"],[7,"How to Draw Foreshortened Hands","Arms/Hands"],[4,"How to Draw Female Hands","Arms/Hands"],[12,"How to Draw Cartoon Hands (Comic, Cartoon, and Mickey Mouse)","Arms/Hands"],[21,"Mickey Mouse Hand Demos","Arms/Hands"],[14,"Cartoon Hand Demos","Arms/Hands"],[80,"Anatomy Critiques - Hands Part 2","Arms/Hands"],[16,"How to Draw Legs – Bone Anatomy for Artists","Legs/Leg Bones"],[9,"Leg Bones Assignment Example 1","Legs/Leg Bones"],[9,"Leg Bones Assignment Example 2","Legs/Leg Bones"],[7,"Leg Bones Assignment Example 3","Legs/Leg Bones"],[7,"Leg Bones Assignment Example 4","Legs/Leg Bones"],[7,"Leg Bones Assignment Example 5","Legs/Leg Bones"],[9,"Leg Bones Assignment Example 6","Legs/Leg Bones"],[13,"How to Draw the Knee","Legs/Leg Bones"],[103,"Anatomy Critiques – Leg Bones","Legs/Leg Bones"],[16,"How to Draw Feet with Structure – Foot Bone Anatomy","Legs/Foot Bones"],[6,"Foot Bones Assignment Example 1","Legs/Foot Bones"],[6,"Foot Bones Assignment Example 2","Legs/Foot Bones"],[5,"Foot Bones Assignment Example 3","Legs/Foot Bones"],[5,"Foot Bones Assignment Example 4","Legs/Foot Bones"],[6,"Foot Bones Assignment Example 5","Legs/Foot Bones"],[57,"Anatomy Critques - The Foot Bones","Legs/Foot Bones"],[1,"A Behind the Scenes Look at the Butt Lesson","Legs/Butt Muscles"],[18,"How to Draw BUTTS!!!","Legs/Butt Muscles"],[17,"Butt Muscle Assignment Example 1","Legs/Butt Muscles"],[8,"Butt Muscle Assignment Example 2","Legs/Butt Muscles"],[13,"Butt Muscle Assignment Example 3","Legs/Butt Muscles"],[35,"How to Draw Butts From Any Angle","Legs/Butt Muscles"],[43,"How to Draw Butts From Extreme Angles","Legs/Butt Muscles"],[47,"Anatomy Critiques – Butt Muscles","Legs/Butt Muscles"],[6,"How to Draw Legs – The Adductors","Legs/Inner Leg Muscles"],[8,"Inner Leg Muscles – Anatomy and Motion","Legs/Inner Leg Muscles"],[12,"Inner Leg Muscles Assignment Answer 1","Legs/Inner Leg Muscles"],[13,"Inner Leg Muscles Assignment Answer 2","Legs/Inner Leg Muscles"],[12,"Inner Leg Muscles Assignment Answer 3","Legs/Inner Leg Muscles"],[7,"Inner Leg Muscles Assignment Answer 4","Legs/Inner Leg Muscles"],[8,"Inner Leg Muscles Assignment Answer 5","Legs/Inner Leg Muscles"],[34,"Anatomy Critiques – Inner Leg Muscles","Legs/Inner Leg Muscles"],[9,"How to Draw Legs – The Quad Muscles","Legs/Quadriceps"],[10,"Drawing Quads Like a Pro","Legs/Quadriceps"],[12,"Quadriceps Assignment Example 1","Legs/Quadriceps"],[19,"Quadriceps Assignment Example 2","Legs/Quadriceps"],[14,"Quadriceps Assignment Example 3","Legs/Quadriceps"],[15,"Quadriceps Assignment Example 4","Legs/Quadriceps"],[13,"Quadriceps Assignment Example 5","Legs/Quadriceps"],[16,"Design vs Anatomy – Which One is More Important?","Legs/Quadriceps"],[63,"Anatomy Critiques – Quadriceps","Legs/Quadriceps"],[8,"8 Minutes to Better Leg Drawings – Hamstring Muscles","Legs/Hamstrings"],[9,"How to Draw Hamstrings Like a Pro","Legs/Hamstrings"],[6,"Hamstrings Muscle Assignment Example 1","Legs/Hamstrings"],[9,"Hamstrings Muscle Assignment Example 2","Legs/Hamstrings"],[8,"Hamstrings Muscle Assignment Example 3","Legs/Hamstrings"],[6,"Hamstrings Muscle Assignment Example 4","Legs/Hamstrings"],[62,"Proko Anatomy Livestream – Drawing the Hamstrings","Legs/Hamstrings"],[46,"Anatomy Critiques – Hamstrings","Legs/Hamstrings"],[7,"How to Draw the Calf - Anatomy for Artists","Legs/Calf Muscles"],[14,"Drawing the Calf Muscles like a Pro","Legs/Calf Muscles"],[23,"Calf Assignment Example 1","Legs/Calf Muscles"],[24,"Calf Assignment Example 2","Legs/Calf Muscles"],[32,"Calf Assignment Example 3","Legs/Calf Muscles"],[32,"Calf Assignment Example 4","Legs/Calf Muscles"],[98,"Anatomy Critiques – The Calves","Legs/Calf Muscles"],[7,"How to Draw the Lower Leg – Anatomy for Artists","Legs/Lower Leg"],[12,"Drawing the Lower Leg like a Pro","Legs/Lower Leg"],[28,"Lower Leg Assignment Example 1","Legs/Lower Leg"],[29,"Lower Leg Assignment Example 2","Legs/Lower Leg"],[80,"Anatomy Critiques – Lower Leg","Legs/Lower Leg"],[15,"How to Draw Feet","Legs/Feet"],[11,"Anatomy of the Foot","Legs/Feet"],[41,"Constructing and Shading the Foot - Anatomy Assignment","Legs/Feet"],[50,"Foot Assignment Example 2","Legs/Feet"],[80,"Foot Assignment Example 3","Legs/Feet"],[101,"Anatomy Critiques – The Feet","Legs/Feet"],[132,"Final Anatomy Demo","Legs/Final Anatomy Demo"]]},"sketching":{"name":"Proko・Ultimate Sketching(Montald)","lessons":[[4,"Introduction and Materials Overview","The Ultimate Sketching Course/The Basics"],[13,"Fundamental Shapes","The Ultimate Sketching Course/The Basics"],[12,"Assignment: Basic Shapes","The Ultimate Sketching Course/The Basics"],[41,"Critique: Basic Shapes","The Ultimate Sketching Course/The Basics"],[12,"Everything You Need to Know About Drawing with Ballpoint Pen","The Ultimate Sketching Course/The Basics"],[29,"Gesture Tracing","The Ultimate Sketching Course/The Soul of the Drawing"],[11,"\"Soul Sketching\" and How to Draw with More Energy","The Ultimate Sketching Course/The Soul of the Drawing"],[18,"\"Soul Sketching\" and How to Draw with More Energy Full Version","The Ultimate Sketching Course/The Soul of the Drawing"],[27,"Soul Sketching, Combining Gesture and Structure","The Ultimate Sketching Course/The Soul of the Drawing"],[14,"Complex Poses and Soul Sketching","The Ultimate Sketching Course/The Soul of the Drawing"],[9,"How to Construct the Figure with Simple Shapes","The Ultimate Sketching Course/The Soul of the Drawing"],[13,"Drawing The Mannequin","The Ultimate Sketching Course/The Soul of the Drawing"],[12,"Assignment 2: Soul Sketching and Gesture Drawings","The Ultimate Sketching Course/The Soul of the Drawing"],[26,"Figure Drawing Tips from a Riot Artist","The Ultimate Sketching Course/The Soul of the Drawing"],[17,"Sketching and Ideation with a Riot Artist","The Ultimate Sketching Course/The Soul of the Drawing"],[71,"Soul Drawing Demonstration (Narrated)","The Ultimate Sketching Course/The Soul of the Drawing"],[13,"Abstracting the Hand","The Ultimate Sketching Course/Drawing Hands"],[11,"Abstracting the Hand (Free)","The Ultimate Sketching Course/Drawing Hands"],[67,"Hands Overview","The Ultimate Sketching Course/Drawing Hands"],[46,"Applied Hand Drawings","The Ultimate Sketching Course/Drawing Hands"],[5,"Assignment 3: Drawing Hands","The Ultimate Sketching Course/Drawing Hands"],[39,"Basic Head Drawing part 1","The Ultimate Sketching Course/Drawings Heads"],[21,"Heads from Imagination part 2","The Ultimate Sketching Course/Drawings Heads"],[20,"Drawing the Skull","The Ultimate Sketching Course/Drawings Heads"],[62,"Heads from Reference (Narrated)","The Ultimate Sketching Course/Drawings Heads"],[6,"Assignment 4: Heads and Underlying Structure","The Ultimate Sketching Course/Drawings Heads"],[10,"If You Can't Draw the Skull, You Can't Draw the Face","The Ultimate Sketching Course/Drawings Heads"],[12,"Feet from Reference","The Ultimate Sketching Course/Feet"],[5,"Assignment 5: Feet in Context","The Ultimate Sketching Course/Feet"],[32,"Feet Demonstration One (Narrated)","The Ultimate Sketching Course/Feet"],[36,"The Structure Underneath the Anatomy","The Ultimate Sketching Course/Skeleton"],[3,"Assignment 6: Skeleton Drawing","The Ultimate Sketching Course/Skeleton"],[26,"Understanding Back Anatomy","The Ultimate Sketching Course/Back Anatomy"],[16,"Understanding Back Abstractions","The Ultimate Sketching Course/Back Anatomy"],[5,"Assignment 7: Drawing Torso Anatomy","The Ultimate Sketching Course/Back Anatomy"],[36,"Inventing Back Anatomy (Narrated)","The Ultimate Sketching Course/Back Anatomy"],[28,"Chest Anatomy Basics","The Ultimate Sketching Course/Chest Anatomy"],[51,"Inventing Torso / Chest Anatomy (Narrated)","The Ultimate Sketching Course/Chest Anatomy"],[6,"Assignment 8","The Ultimate Sketching Course/Chest Anatomy"],[12,"The Easiest way to Draw and Arm (Start with a Tube)","The Ultimate Sketching Course/Arms"],[15,"A Simple Method for Drawing Arms","The Ultimate Sketching Course/Arms"],[15,"Arm Muscles and Movement","The Ultimate Sketching Course/Arms"],[15,"Arms Exercises Tips and Tricks","The Ultimate Sketching Course/Arms"],[14,"The Arms When Raised Above the Head","The Ultimate Sketching Course/Arms"],[10,"Arms From the Back","The Ultimate Sketching Course/Arms"],[10,"How Muscles Change When Bending","The Ultimate Sketching Course/Arms"],[3,"Assignment 9","The Ultimate Sketching Course/Arms"],[24,"The Basics of the Hips","The Ultimate Sketching Course/Legs and Pelvis"],[29,"Upper Leg Anatomy","The Ultimate Sketching Course/Legs and Pelvis"],[13,"Legs From Imagination","The Ultimate Sketching Course/Legs and Pelvis"],[15,"Turning the Legs in Space","The Ultimate Sketching Course/Legs and Pelvis"],[3,"Assignment 10: Legs from Imagination","The Ultimate Sketching Course/Legs and Pelvis"],[8,"Assignment 11: Draw the Pelvis","The Ultimate Sketching Course/Legs and Pelvis"],[16,"Characters From Imagination One (Narrated)","The Ultimate Sketching Course/Imaginative Drawing"],[59,"Characters From Imagination Two (Narrated)","The Ultimate Sketching Course/Imaginative Drawing"],[11,"The Perspective Hack That Will Instantly Improve Your Drawings","The Ultimate Sketching Course/Basic Perspective"],[22,"Basic Shapes In Perspective","The Ultimate Sketching Course/Basic Perspective"],[24,"Composing a Scene With Perspective","The Ultimate Sketching Course/Basic Perspective"],[17,"Finalizing an Idea","The Ultimate Sketching Course/Basic Perspective"],[213,"Airport Perspective Demo","The Ultimate Sketching Course/Basic Perspective"],[10,"Assignment 12","The Ultimate Sketching Course/Basic Perspective"],[26,"Jinx and Vi Part One (Narrated)","The Ultimate Sketching Course/Basic Perspective"],[4,"Assignment 13: Draw a Scene In your Sketchbook","The Ultimate Sketching Course/Basic Perspective"],[163,"Coffee Shop Demonstration","The Ultimate Sketching Course/Un-narrated Demonstrations"],[125,"Character Demo","The Ultimate Sketching Course/Un-narrated Demonstrations"],[134,"Jinx and Vi","The Ultimate Sketching Course/Un-narrated Demonstrations"],[153,"Jinx and Vi Pt 2","The Ultimate Sketching Course/Un-narrated Demonstrations"],[111,"Jinx and Vi Part 3","The Ultimate Sketching Course/Un-narrated Demonstrations"],[49,"Inventing Back Anatomy Demonstration","The Ultimate Sketching Course/Un-narrated Demonstrations"],[32,"Feet Demonstration One","The Ultimate Sketching Course/Un-narrated Demonstrations"],[30,"Feet Demonstration Two","The Ultimate Sketching Course/Un-narrated Demonstrations"],[21,"Creative Drawing With Arms Part 1","The Ultimate Sketching Course/Un-narrated Demonstrations"],[61,"Creative Drawing With Arms Part 2","The Ultimate Sketching Course/Un-narrated Demonstrations"],[45,"Creative Drawing With Arms Part 3","The Ultimate Sketching Course/Un-narrated Demonstrations"],[34,"These Drawings Got This Artist Hired at Riot","The Ultimate Sketching Course/Sketchbook Tours"],[15,"From Belgium to Valorant: Rembert Montald's Sketches","The Ultimate Sketching Course/Sketchbook Tours"],[19,"Sketching in Public - Tips from a Riot Artist","The Ultimate Sketching Course/Sketchbook Tours"],[16,"This Storyboard Artist's Sketchbook is Mind-Blowing","The Ultimate Sketching Course/Sketchbook Tours"],[7,"Side Portrait","Unnarrated Demonstrations/Part 1"],[10,"Woman jump","Unnarrated Demonstrations/Part 1"],[8,"Vampire man","Unnarrated Demonstrations/Part 1"],[11,"Horse lady stretching","Unnarrated Demonstrations/Part 1"],[1,"Lady in profile","Unnarrated Demonstrations/Part 1"],[1,"Blonde man","Unnarrated Demonstrations/Part 1"],[9,"Woman in headwrap","Unnarrated Demonstrations/Part 1"],[18,"Baton man","Unnarrated Demonstrations/Part 1"],[10,"leaning woman in profile","Unnarrated Demonstrations/Part 1"],[10,"Squid guy","Unnarrated Demonstrations/Part 1"],[7,"Spear girl","Unnarrated Demonstrations/Part 1"],[9,"Man back tattoo","Unnarrated Demonstrations/Part 1"],[7,"Skateboard man","Unnarrated Demonstrations/Part 1"],[12,"Man with rifle","Unnarrated Demonstrations/Part 1"],[7,"Punk elf woman","Unnarrated Demonstrations/Part 1"],[9,"Caped boy with bat","Unnarrated Demonstrations/Part 1"],[7,"Bat dragon woman","Unnarrated Demonstrations/Part 1"],[15,"Vi","Unnarrated Demonstrations/Part 2"],[9,"Yelling Man Swinging","Unnarrated Demonstrations/Part 2"],[8,"Woman Fur Shawl","Unnarrated Demonstrations/Part 2"],[11,"Skirt Man Sword","Unnarrated Demonstrations/Part 2"],[16,"Tattoo Man Sitting","Unnarrated Demonstrations/Part 2"],[11,"Bunny Suit Woman","Unnarrated Demonstrations/Part 2"],[9,"Woman Dress","Unnarrated Demonstrations/Part 2"],[12,"Headphones Man Back","Unnarrated Demonstrations/Part 2"],[9,"Woman Ruffle Blouse","Unnarrated Demonstrations/Part 2"],[10,"Man Curly Hair Chest","Unnarrated Demonstrations/Part 2"],[7,"Cloak Man Skull","Unnarrated Demonstrations/Part 2"],[11,"Woman Body Suit","Unnarrated Demonstrations/Part 2"],[4,"Woman Button Down Shirt","Unnarrated Demonstrations/Part 2"],[6,"Woman Jacket","Unnarrated Demonstrations/Part 2"],[7,"Woman Nude","Unnarrated Demonstrations/Part 2"],[19,"Woman Bicycle Cat","Unnarrated Demonstrations/Part 2"],[12,"Horse Lady Nude","Unnarrated Demonstrations/Part 2"],[2,"Mannequin","Unnarrated Demonstrations/Part 2"],[1,"Woman Goggles","Unnarrated Demonstrations/Part 2"],[19,"Horse Woman Bouquet","Unnarrated Demonstrations/Part 3"],[12,"Woman Flame","Unnarrated Demonstrations/Part 3"],[9,"Scarf Horse Woman","Unnarrated Demonstrations/Part 3"],[10,"Tattoo Man","Unnarrated Demonstrations/Part 3"],[11,"Woman Smiley Face Back","Unnarrated Demonstrations/Part 3"],[11,"Woman Circlet","Unnarrated Demonstrations/Part 3"],[10,"Woman Neck Scarf","Unnarrated Demonstrations/Part 3"],[16,"Man Hoodie Jump","Unnarrated Demonstrations/Part 3"],[4,"Woman Drink","Unnarrated Demonstrations/Part 3"],[19,"Jinx","Unnarrated Demonstrations/Part 3"]]},"seeanddraw":{"name":"Huston・Learning to See and Draw","lessons":[[15,"Why Art","Introduction"],[15,"The Intuitive Approach","Introduction"],[16,"Master The Materials","Introduction"],[19,"How to Practice Art Without Burnout","Introduction"],[13,"Our First 2 Ideas","Introduction"],[10,"Structure and Gesture Explained","Structure and Gesture"],[16,"Defining Structure Intuitively","Structure and Gesture"],[16,"Defining Gesture Intuitively","Structure and Gesture"],[10,"Defining Gesture Part 2","Structure and Gesture"],[20,"Intuitive Structure And Gesture The Power Of Tubes","The Power of Tubes"],[15,"The Power of Tubes Demo","The Power of Tubes"],[20,"The Power of Tubes - Permission to Fail","The Power of Tubes"],[19,"Gesture and Structure Demo","The Power of Tubes"],[9,"Filters and Iterations","Filters and Iterations"],[18,"Using Filters and Iterations","Filters and Iterations"],[17,"Using Filters And Iterations Part 2","Filters and Iterations"],[15,"Big Simple Structures - The Arms First","Drawing The Arms"],[13,"Big Simple Structures - The Arms And Forearms","Drawing The Arms"],[10,"Big Simple Structures - The Legs","Drawing The Legs"],[8,"Big Simple Structures - The Legs Part 2","Drawing The Legs"],[4,"Big Simple Structures - The Legs Part 3","Drawing The Legs"],[16,"Big Simple Structures - Lower Legs","Drawing The Legs"],[9,"Big Simple Structures - Lower Legs One More Time","Drawing The Legs"],[6,"Big Simple Structures - Legs To Back View","Drawing The Legs"],[15,"Big Simple Structures - The Torso","Drawing The Torso"],[16,"Big Simple Structures - The Torso Part 2","Drawing The Torso"],[16,"Big Simple Structures - The Torso In Profile (The Beanbag)","Drawing The Torso"],[15,"Big Simple Structures - Iterating The Torso (Beanbags And Drumsticks)","Drawing The Torso"],[14,"Big Simple Structures - Iterating The Torso (Beanbags And Drumsticks Part 2)","Drawing The Torso"],[8,"A Demo on Beanbags and Drumsticks","Drawing The Torso"],[7,"Connecting the Legs and Torso Front and Back Views","Drawing The Torso"],[9,"Connecting the Legs and Torso in Profile","Drawing The Torso"],[8,"The Shoulders Part 1","Drawing The Shoulders"],[18,"The Shoulders Part 2 - Secondary Forms","Drawing The Shoulders"],[13,"The Shoulders Part 3 - Raising the Arms","Drawing The Shoulders"],[17,"The Shoulders Part 4 - Front View","Drawing The Shoulders"],[10,"The Shoulders Part 5 - Front View Arms Up","Drawing The Shoulders"],[6,"The Shoulders with Arms Up Demo","Drawing The Shoulders"],[12,"Big Simple Structures - The Head And Neck","Drawing The Head and Neck"],[12,"Big Simple Structures - The Head And Neck Part 2","Drawing The Head and Neck"],[16,"Secondary Structures Of The Head","Drawing The Head and Neck"],[17,"Secondary Structures Of The Head Part 2","Drawing The Head and Neck"],[14,"Secondary Structures Of The Head Part 3","Drawing The Head and Neck"],[14,"Secondary Structures Of The Head Part 4","Drawing The Head and Neck"],[15,"Secondary Structures Of The Head Part 5","Drawing The Head and Neck"],[11,"Simple Structures of the Hands","Drawing The Hands"],[16,"Simple Structures of the Hands Part 2","Drawing The Hands"],[14,"Simple Structures of the Hands Part 3","Drawing The Hands"],[16,"Simple Structures of the Hands Part 4","Drawing The Hands"],[14,"Simple Structures of the Feet","Drawing The Feet"],[11,"Simple Structures of the Feet Part 2","Drawing The Feet"],[17,"Simple Structures Of The Feet - The Back Of The Foot","Drawing The Feet"],[14,"Simple Structures of the Feet - The Toes","Drawing The Feet"],[13,"Line and Tone and the 2-Value System","Value"],[9,"The 2-Value System And The Simplest Connective Strategy","Value"],[12,"A Demo On The 2-Value System And The Simplest Connective Strategy","Value"],[19,"2 Value Ranges","Value"],[13,"2 Value Ranges - A Demo","Value"],[18,"How To Succeed - Goal Setting","How to Succeed"],[15,"How To Succeed - Deep Focus and Chunking Down","How to Succeed"],[19,"How To Succeed - Set Points & Chunking Down","How to Succeed"],[28,"Figure in Light and Shadow Demo","Drawing with Traditional Media"],[94,"Long Form Charcoal Rendering","Drawing with Traditional Media"],[12,"Quicksketch Demo","Drawing with Traditional Media"]]},"force":{"name":"FORCE(Mattesi)","lessons":[[2,"About Me","Class 01: Getting Started"],[1,"Course Overview","Class 01: Getting Started"],[28,"FORCE as Style","Class 01: Getting Started"],[3,"Three Steps","Class 01: Getting Started"],[3,"Internal Dialogue and Questions","Class 01: Getting Started"],[3,"Your Drawing is as Good as Your Ideas","Class 01: Getting Started"],[7,"Traditional Supplies","Class 01: Getting Started"],[13,"Holding the Graphite","Class 01: Getting Started"],[9,"General Set Up","Class 01: Getting Started"],[5,"Soft Touch","Class 01: Getting Started"],[18,"Digital Brushes","Class 01: Getting Started"],[2,"Line and the Paper Airplane","Class 02: FORCE Line"],[2,"Landing and Take Off","Class 02: FORCE Line"],[1,"Elements of the FORCE Line","Class 02: FORCE Line"],[2,"Bad Line Examples","Class 02: FORCE Line"],[6,"Straight Line: A to B","Class 02: FORCE Line"],[10,"Force Action Lines","Class 02: FORCE Line"],[14,"Gravity and Angles","Class 03: Gravity and Angles"],[10,"Angles in the Body","Class 03: Gravity and Angles"],[6,"Torso Point to Point","Class 03: Gravity and Angles"],[5,"Box Demo 01","Class 03: Gravity and Angles"],[8,"Box Demo-02","Class 03: Gravity and Angles"],[4,"Box Demo-03","Class 03: Gravity and Angles"],[12,"Gravity Guide","Class 04: Gravity Guide"],[8,"GG Demo-01","Class 04: Gravity Guide"],[7,"GG Dem0-02","Class 04: Gravity Guide"],[6,"GG Demo-03","Class 04: Gravity Guide"],[1,"Applied FORCE","Class 05: The Leading Edge"],[2,"Leading Edge Intro","Class 05: The Leading Edge"],[9,"Points of the Curve","Class 05: The Leading Edge"],[6,"Circles and Ellipses","Class 05: The Leading Edge"],[2,"Regions of the Torso","Class 05: The Leading Edge"],[10,"Leading Edge Study","Class 05: The Leading Edge"],[2,"Demo-01","Class 05: The Leading Edge"],[2,"Demo-02","Class 05: The Leading Edge"],[1,"Demo-03","Class 05: The Leading Edge"],[4,"Demo-04","Class 05: The Leading Edge"],[4,"FORCE Action And Gravity","Class 05: The Leading Edge"],[3,"Disney Animation Study","Class 05: The Leading Edge"],[2,"The Rhythm Formula","Class 06: Rhythm"],[9,"The Bunny and the Snake","Class 06: Rhythm"],[2,"Driving a Racecar","Class 06: Rhythm"],[2,"Skiing","Class 06: Rhythm"],[1,"SnowBoarding","Class 06: Rhythm"],[3,"Demo 01","Class 06: Rhythm"],[3,"Demo 02","Class 06: Rhythm"],[4,"Demo 03-Rhythm","Class 06: Rhythm"],[4,"Demo 04- Directional and Applied FORCES","Class 06: Rhythm"],[5,"Angles to Curves","Class 07: Torso Templates"],[4,"Torso Templates: C, S and CS","Class 07: Torso Templates"],[2,"C Torso Details","Class 07: Torso Templates"],[2,"C and S, Front and Back","Class 07: Torso Templates"],[2,"C and S Profile","Class 07: Torso Templates"],[1,"S Torso Details","Class 07: Torso Templates"],[24,"Torso Summary","Class 07: Torso Templates"],[18,"Rapid FIre Torsos","Class 07: Torso Templates"],[8,"Rapid Fire Stick Arms and Legs","Class 07: Torso Templates"],[6,"Six Step Torso","Class 08: Six Step Torso"],[9,"Six Step Demos","Class 08: Six Step Torso"],[6,"FORCE Legs Intro","Class 09: Legs Templates"],[4,"Leg: Front View","Class 09: Legs Templates"],[4,"Leg: Side View","Class 09: Legs Templates"],[6,"Lower Legs","Class 09: Legs Templates"],[8,"Leg Dais","Class 09: Legs Templates"],[3,"Demo -01: Same Template, Different Function","Class 09: Legs Templates"],[3,"Demo-02: Leg Spring","Class 09: Legs Templates"],[4,"Demo-03: Two Leg Template","Class 09: Legs Templates"],[15,"Rapid Fire Legs","Class 09: Legs Templates"],[3,"Side View, Bridge","Class 10: Arm Templates"],[2,"Inverted Elbow","Class 10: Arm Templates"],[2,"Deltoid Detour","Class 10: Arm Templates"],[1,"Demo-01","Class 10: Arm Templates"],[2,"Demo-02","Class 10: Arm Templates"],[1,"Demo-03","Class 10: Arm Templates"],[12,"Rapid Fire Arms","Class 10: Arm Templates"],[2,"Neck and Head Templates","Class 11: Neck and Head Templates"],[1,"Demo-01","Class 11: Neck and Head Templates"],[1,"Demo-02","Class 11: Neck and Head Templates"],[1,"Demo-03","Class 11: Neck and Head Templates"],[16,"Rapid Fire Neck and Head","Class 11: Neck and Head Templates"],[1,"Thank You","Class 11: Neck and Head Templates"],[12,"RAID Process","Class 12: Raid process"],[6,"RAID Student Examples","Class 12: Raid process"],[8,"Wizard","Class 12: Raid process"],[6,"Three pose analysis","Class 12: Raid process"],[8,"RAID and DADA","Class 12: Raid process"],[21,"Bonus 01: Andrew Step by Step","Class 12: Raid process"],[5,"Bonus 02: Ted Step by Step","Class 12: Raid process"],[5,"Bonus 03: Mike Step by Step","Class 12: Raid process"],[1,"Gestalt","Class 13: Skating"],[6,"Length of Line and Thought","Class 13: Skating"],[8,"Skate and Ski","Class 13: Skating"],[5,"Skate and Ski Demo 01","Class 13: Skating"],[5,"Skate and Ski Demo 02","Class 13: Skating"],[5,"Skate and Ski Demo 03","Class 13: Skating"],[8,"Imagination","Class 13: Skating"]]}};
+const COURSE_KEYS=['anatomy','sketching','seeanddraw'];
+const COURSE_SHORT={anatomy:'解剖(Proko)',sketching:'素描(Montald)',seeanddraw:'觀察(Huston)'};
+function drillOf(txt){
+  const t=txt.toLowerCase();
+  if(/hand|finger/.test(t))return 'hand';
+  if(/head|skull|face|neck/.test(t))return 'skull';
+  if(/glute|butt|thigh|quad|hamstring|calf|leg|feet|foot|hip/.test(t))return 'leg';
+  if(/back|chest|pec|abs|oblique|torso|spine|rib|shoulder|skeleton|perspective|structure|tube/.test(t))return 'torso';
+  return null;
+}
+/* ═══ 月度計畫:每月主攻 × 三門課章節隊列 × drill 配置 ═══ */
+const MONTHS=['2026-07','2026-08','2026-09','2026-10','2026-11','2026-12'];
+const MONTH_PLAN={
+'2026-07':{focus:'頭骨與表情',targets:['頭骨速寫 +40(累計 40)','主題 01–02 完稿','跑步 6 次','課程:頭部章節'],
+ q:{anatomy:[],
+    sketching:['The Ultimate Sketching Course/Drawings Heads'],
+    seeanddraw:['Introduction','Drawing The Head and Neck']}},
+'2026-08':{focus:'軀幹結構與透視',targets:['頭骨衝線 100 ✓','主題 03–06(Phase 1 收尾)','跑步基準升 3km','軀幹結構+透視章節'],
+ q:{anatomy:['Torso/The Basics','Torso/Spine','Torso/Pelvis','Torso/Rib Cage','Torso/Shoulder Bones'],
+    sketching:['The Ultimate Sketching Course/The Basics','The Ultimate Sketching Course/Skeleton','The Ultimate Sketching Course/Basic Perspective'],
+    seeanddraw:['Structure and Gesture','The Power of Tubes','Filters and Iterations','Drawing The Torso']}},
+'2026-09':{focus:'上半身肌肉',targets:['主題 07–09','上半身肌肉章節','手部改每週一晚維持'],
+ q:{anatomy:['Torso/Intro to Muscles','Torso/Pecs & Breasts','Torso/Abs','Torso/Obliques','Torso/Shoulder Muscles','Torso/Neck Muscles','Arms/Arm Bones','Arms/Deltoids','Arms/Biceps','Arms/Triceps','Arms/Forearms','Arms/Hand Bones','Arms/Hands'],
+    sketching:['The Ultimate Sketching Course/Chest Anatomy','The Ultimate Sketching Course/Arms','The Ultimate Sketching Course/Drawing Hands'],
+    seeanddraw:['Drawing The Shoulders','Drawing The Arms','Drawing The Hands']}},
+'2026-10':{focus:'背部肌肉與臀部',targets:['主題 10–12(09 背部特寫對齊)','背/臀章節','腿臀足累計 60'],
+ q:{anatomy:['Torso/Upper Back Muscles','Torso/Lower Back Muscles','Torso/Torso Drawing','Legs/Butt Muscles'],
+    sketching:['The Ultimate Sketching Course/Back Anatomy'],
+    seeanddraw:[]}},
+'2026-11':{focus:'下肢',targets:['主題 13–16','下肢全章節','腿臀足累計 90'],
+ q:{anatomy:['Legs/Leg Bones','Legs/Inner Leg Muscles','Legs/Quadriceps','Legs/Hamstrings','Legs/Calf Muscles','Legs/Lower Leg','Legs/Foot Bones','Legs/Feet'],
+    sketching:['The Ultimate Sketching Course/Legs and Pelvis','The Ultimate Sketching Course/Feet'],
+    seeanddraw:['Drawing The Legs','Drawing The Feet']}},
+'2026-12':{focus:'整合與收官',targets:['主題 17–20(最低完成線 16)','腿臀足衝線 120 ✓','全英文模擬面試 30 分 ✓'],
+ q:{anatomy:['Legs/Final Anatomy Demo'],
+    sketching:['The Ultimate Sketching Course/The Soul of the Drawing','The Ultimate Sketching Course/Imaginative Drawing'],
+    seeanddraw:['Value','How to Succeed','Drawing with Traditional Media']}},
+};
+function monthQueue(ck,ym){
+  const mp=MONTH_PLAN[ym];
+  if(!mp)return COURSE_DATA[ck].lessons.map((_,i)=>i);
+  const out=[];
+  for(const ch of (mp.q[ck]||[]))
+    COURSE_DATA[ck].lessons.forEach((L,i)=>{if(L[2]===ch)out.push(i)});
+  return out;
+}
+function watchedSet(ck){return new Set(S.watched&&S.watched[ck]||[])}
+/* 本月隊列 → 回補前月 → 先修下月 → 複習(1.25x) */
+function courseBundle(ck,date){
+  const ym=mk(date), cd=COURSE_DATA[ck], w=watchedSet(ck);
+  let pool=monthQueue(ck,ym).filter(i=>!w.has(i)), mode='';
+  if(!pool.length){
+    for(const m2 of MONTHS){if(m2>=ym)break;
+      pool=pool.concat(monthQueue(ck,m2).filter(i=>!w.has(i)))}
+    if(pool.length)mode='回補';
+  }
+  if(!pool.length){
+    for(const m2 of MONTHS){if(m2<=ym)continue;
+      const q=monthQueue(ck,m2).filter(i=>!w.has(i));
+      if(q.length){pool=q;mode='先修';break}}
+  }
+  let review=false;
+  if(!pool.length){pool=monthQueue(ck,ym);review=true;mode='複習';
+    if(!pool.length)return null}
+  const sel=[];let tot=0;
+  for(const j of pool){
+    const m=review?Math.ceil(cd.lessons[j][0]/1.25):cd.lessons[j][0];
+    if(sel.length&&tot+m>45)break;
+    sel.push(j);tot+=m;
+    if(sel.length>=8||tot>=35)break;
+  }
+  return {cd,sel,tot,review,mode};
+}
+/* 預設課程:優先本月還有未看章節的課 */
+function defaultCourse(date,salt){
+  const ym=mk(date);
+  const avail=COURSE_KEYS.filter(k=>monthQueue(k,ym).some(i=>!watchedSet(k).has(i)));
+  const list=avail.length?avail:COURSE_KEYS;
+  return list[((salt%list.length)+list.length)%list.length];
+}
+/* 休閒日不想出門時的替代行程 */
+const ALT_FUN=[
+  {name:'圖書館看書',s:'14:00',e:'16:30'},
+  {name:'咖啡廳速寫 / 看書',s:'14:00',e:'16:00'},
+  {name:'在家看一部片(當構圖課看)',s:'19:30',e:'21:30'},
+];
+const PLAN_START=new Date(2026,6,12); // 計畫起點:7/12
+const RUN_ANCHOR=new Date(2026,6,13); // 週數/漸進計算起點(第一個週一)
+const KEY='evening-os';
+let S={setup:false,skull:0,hand:0,leg:0,torso:0,done:0,
+  runTarget:2,runBase:2,courseNights:2,
+  engTime:'20:00',engDur:50,
+  courseIdx:{anatomy:0,force:0,sketching:0,seeanddraw:0},
+  english:{},off:{},history:{},salt:{},light:{},late:{},skipFun:{},rain:{},coursePick:{}};
+let calCursor=new Date(); calCursor.setDate(1);
+
+/* ═══════════ 工具 ═══════════ */
+const pad=n=>String(n).padStart(2,'0');
+const dk=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const mk=d=>d.getFullYear()+'-'+pad(d.getMonth()+1);
+const WD='日一二三四五六';
+const fmt=m=>pad(Math.floor(m/60))+':'+pad(m%60);
+function rng(str){let h=2166136261;for(const c of str){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}
+  return function(){h=Math.imul(h^h>>>15,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return(h>>>0)/4294967296}}
+function monday(d){const x=new Date(d);const w=(x.getDay()+6)%7;x.setDate(x.getDate()-w);x.setHours(0,0,0,0);return x}
+function isEng(d){const o=S.english[mk(d)]||{};return o[d.getDate()]!==undefined}
+function engTimeFor(d){const o=S.english[mk(d)]||{};return o[d.getDate()]||S.engTime||'20:00'}
+function hist(k){return S.history[k]||(S.history[k]={})}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
+
+/* ═══════════ storage(雙重保存:Claude 環境 + 瀏覽器本機)═══════════ */
+async function sGet(k){
+  try{const r=await window.storage.get(k);if(r&&r.value!=null)return r.value}catch(e){}
+  try{const v=localStorage.getItem(k);if(v!=null)return v}catch(e){}
+  return null;
+}
+async function sSet(k,v){
+  let ok=false;
+  try{await window.storage.set(k,v);ok=true}catch(e){}
+  try{localStorage.setItem(k,v);ok=true}catch(e){}
+  return ok;
+}
+/* ═══════════ 雲端同步(GitHub Gist):鑰匙只存本機,資料存你的私人 Gist ═══════════ */
+const SYNC_KEY='evening-os-sync';
+let SYNC={token:'',gistId:'',last:0,status:'未啟用'};
+function loadSync(){try{const v=localStorage.getItem(SYNC_KEY);if(v)SYNC={...SYNC,...JSON.parse(v)}}catch(e){}}
+function saveSync(){try{localStorage.setItem(SYNC_KEY,JSON.stringify(SYNC))}catch(e){}}
+async function gh(path,opt={}){
+  const res=await fetch('https://api.github.com'+path,{...opt,
+    headers:{'Authorization':'token '+SYNC.token,'Accept':'application/vnd.github+json',...(opt.headers||{})}});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  return res.json();
+}
+async function findOrCreateGist(){
+  const list=await gh('/gists?per_page=100');
+  const hit=list.find(g=>g.files&&g.files['evening-os.json']);
+  if(hit)return hit.id;
+  const made=await gh('/gists',{method:'POST',
+    body:JSON.stringify({description:'今晚做什麼・173天計畫同步資料',public:false,
+      files:{'evening-os.json':{content:JSON.stringify(S)}}})});
+  return made.id;
+}
+async function cloudPull(){
+  if(!SYNC.token||!SYNC.gistId)return;
+  try{
+    const g=await gh('/gists/'+SYNC.gistId);
+    const f=g.files['evening-os.json'];
+    let content=f.content;
+    if(f.truncated){const r=await fetch(f.raw_url);content=await r.text()}
+    const remote=JSON.parse(content);
+    if((remote._ts||0)>(S._ts||0)){
+      S={...S,...remote};
+      await sSet(KEY,JSON.stringify(S));
+      renderAll(); toast('已從雲端同步最新資料');
+    }
+    SYNC.status='已同步 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    SYNC.last=Date.now(); saveSync(); renderSyncUI();
+  }catch(e){SYNC.status='同步失敗('+e.message+')';renderSyncUI()}
+}
+let pushT=null;
+function cloudPush(now){
+  if(!SYNC.token||!SYNC.gistId)return;
+  clearTimeout(pushT);
+  pushT=setTimeout(async()=>{
+    try{
+      await gh('/gists/'+SYNC.gistId,{method:'PATCH',
+        body:JSON.stringify({files:{'evening-os.json':{content:JSON.stringify(S)}}})});
+      SYNC.status='已同步 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+      SYNC.last=Date.now(); saveSync(); renderSyncUI();
+    }catch(e){SYNC.status='上傳失敗('+e.message+')';renderSyncUI()}
+  },now?0:2500);
+}
+function renderSyncUI(){
+  const st=document.getElementById('syncStatus');
+  if(st)st.textContent='狀態:'+SYNC.status+(SYNC.token?'・鑰匙已存本機':'');
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&Date.now()-SYNC.last>60000)cloudPull();
+});
+
+async function load(){
+  try{const v=await sGet(KEY); if(v)S={...S,...JSON.parse(v)}}catch(e){}
+  for(const ym in S.english){const v=S.english[ym];
+    if(Array.isArray(v)){const o={};v.forEach(d=>o[d]=S.engTime||'20:00');S.english[ym]=o}}
+  if(!S.off)S.off={};
+  if(!S.late)S.late={};
+  if(!S.skipFun)S.skipFun={};
+  if(!S.rain)S.rain={};
+  if(!S.coursePick)S.coursePick={};
+  if(!S.watched)S.watched={};
+  for(const k of COURSE_KEYS){
+    if(!S.watched[k])S.watched[k]=[];
+    const li=S.courseIdx&&S.courseIdx[k]||0; /* 舊線性指標轉已看清單 */
+    if(li>0&&!S.watched[k].length)for(let i=0;i<li;i++)S.watched[k].push(i);
+  }
+  if(S.torso===undefined)S.torso=0;
+  if(!S.courseIdx)S.courseIdx={};
+  if(S.courseIdx.proko!==undefined){S.courseIdx.anatomy=S.courseIdx.proko;delete S.courseIdx.proko}
+  if(S.courseIdx.huston!==undefined){S.courseIdx.seeanddraw=S.courseIdx.huston;delete S.courseIdx.huston}
+  for(const k of COURSE_KEYS)if(S.courseIdx[k]===undefined)S.courseIdx[k]=0;
+  if(!S.acts)S.acts=[
+    {name:'看電影',s:'19:00',e:'21:30',d:'both'},
+    {name:'郊遊踏青',s:'10:00',e:'13:00',d:'both'},
+    {name:'美術館 / 展覽',s:'14:00',e:'17:00',d:'both'}];
+  if(!S.setup){
+    try{const v=await sGet('bootcamp-daily');
+      if(v){const o=JSON.parse(v);
+        document.getElementById('su-skull').value=o.skull||0;
+        document.getElementById('su-hand').value=o.hand||0;
+        document.getElementById('su-done').value=o.done||0;}
+    }catch(e){}
+    document.getElementById('setupModal').classList.add('on');
+  }
+  loadSync();
+  renderAll();
+  renderSyncUI();
+  cloudPull();
+}
+let saveT=null;
+function save(){S._ts=Date.now();clearTimeout(saveT);
+  saveT=setTimeout(()=>{sSet(KEY,JSON.stringify(S))},250);
+  cloudPush();}
+
+/* ═══════════ 每週分派 ═══════════ */
+function weekAssign(mon){
+  const engIdx=[],offIdx=[],r=rng('wk'+dk(mon)+':'+S.runTarget+':'+S.courseNights);
+  const dates=[];
+  for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);dates.push(d);
+    if(isEng(d))engIdx.push(i); if(S.off[dk(d)])offIdx.push(i)}
+  const ok=i=>!engIdx.includes(i)&&!offIdx.includes(i);
+  const shuffle=a=>{const p=[...a];for(let i=p.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[p[i],p[j]]=[p[j],p[i]]}return p};
+
+  /* 跑步日:避開英文與有事日,盡量隔開 */
+  const runPool=shuffle([0,1,2,3,4,5,6].filter(ok));
+  const run=[];
+  const tryGap=g=>{for(const c of runPool){if(run.length>=S.runTarget)break;
+    if(run.every(p=>Math.abs(p-c)>=g))run.push(c)}};
+  tryGap(2); if(run.length<S.runTarget)tryGap(1);
+  if(run.length<S.runTarget)for(const c of runPool){if(run.length>=S.runTarget)break;if(!run.includes(c))run.push(c)}
+  run.sort((a,b)=>a-b);
+
+  /* 課程夜:平日、避開英文與有事日,優先非跑步日 */
+  const cCount=engIdx.filter(i=>i<5).length>=3?1:S.courseNights;
+  const cPool=shuffle([0,1,2,3,4].filter(ok));
+  const course=[];
+  for(const c of cPool){if(course.length>=cCount)break;if(!run.includes(c))course.push(c)}
+  for(const c of cPool){if(course.length>=cCount)break;if(!course.includes(c))course.push(c)}
+  course.sort((a,b)=>a-b);
+
+  /* 腿臀 drill 夜:剩下的平日挑一晚 */
+  const lPool=shuffle([0,1,2,3,4].filter(i=>ok(i)&&!course.includes(i)));
+  const lower=lPool.length?[lPool[0]]:[];
+  return {run,course,lower,engIdx,offIdx};
+}
+
+/* ═══════════ 跑步課表 ═══════════ */
+function runDetail(mon,order,wknd){
+  const weeks=Math.max(0,Math.floor((mon-RUN_ANCHOR)/(7*86400000)));
+  const base=Math.min(8,S.runBase+Math.min(4,Math.floor(weeks/3))*0.5);
+  let km,label,tip;
+  if(wknd){km=Math.min(8,base+1);label='長距離';tip='慢慢跑,能講話的配速'}
+  else if(order===0){km=base;label='輕鬆跑';tip='熱身 5 分快走再起跑'}
+  else{km=Math.min(8,base+0.5);label='進階';tip='最後 500m 略加速'}
+  const min=Math.round(km*8)+10;
+  return {km,label,tip,min};
+}
+/* 跑步區塊:下雨日自動換成室內運動 30 分 */
+function runBlock(mon,order,wknd,key){
+  if(S.rain[key])
+    return {type:'run',ttl:'室內運動 30 分',sub:'下雨備案・運動影片跟練(有氧或核心)',min:30,km:0};
+  const rd=runDetail(mon,order,wknd);
+  return {type:'run',ttl:'跑步 '+rd.km+' km・'+rd.label,sub:rd.tip+'・約 '+rd.min+' 分',min:rd.min,km:rd.km};
+}
+
+/* ═══════════ drill 選擇 ═══════════ */
+function drillKind(d,handNight){
+  const ym=mk(d);
+  if(ym<='2026-07')return {k:'skull',name:'頭骨速寫',tip:'5 顆起跳・注重顱腔體積與眼窩對位'};
+  if(ym==='2026-08')return S.skull<100&&d.getDate()%3===0
+    ?{k:'skull',name:'頭骨速寫(衝線)',tip:'頭骨未達 100,今天補進度'}
+    :{k:'torso',name:'軀幹體塊與透視速寫',tip:'方塊人/豆袋,5 組起跳・先體塊再輪廓'};
+  if(ym==='2026-09')return {k:'torso',name:'上半身肌肉速寫',tip:'胸肩臂,5 組起跳・肌肉接骨點要對'};
+  if(ym==='2026-10')return d.getDate()%2===0
+    ?{k:'leg',name:'臀部體塊速寫',tip:'臀是盒子不是曲線,5 組起跳'}
+    :{k:'torso',name:'背部結構速寫',tip:'肩胛+脊椎溝,5 組起跳・直接餵主題09'};
+  if(ym==='2026-11')return {k:'leg',name:'腿臀足速寫',tip:'骨盆體塊 → 大轉子 → 膝 → 足,5 組起跳'};
+  const rot=[{k:'skull',name:'頭骨速寫(維持)'},{k:'torso',name:'軀幹速寫(維持)'},{k:'leg',name:'腿臀足速寫(維持)'},{k:'hand',name:'手部速寫(維持)'}][d.getDate()%4];
+  return {...rot,tip:'收官月弱點輪換,保持手感'};
+}
+const SUBS=[
+  {type:'sub',ttl:'英文自習',sub:'單字 / 影集精聽 25 分鐘',min:25},
+  {type:'sub',ttl:'參考蒐集與拆解',sub:'找 3 張 LoL / SF6 官圖,拆光影結構',min:25},
+  {type:'sub',ttl:'伸展放鬆',sub:'肩頸手腕 15 分鐘,畫圖人的保養',min:15},
+];
+
+/* ═══════════ 教練語錄 ═══════════ */
+const COACH={
+  off:["有事就去處理,計畫會自己讓路,明天見。","休息不用補回來,這週的行程已經幫你重排好了。"],
+  light:["輕量日不是退步,是讓明天能繼續的策略。","今天只求不斷線,20 分鐘就贏了。","狀態差還願意打開這頁,已經比大多數人強。"],
+  theme:["虛化禁區盯緊——敢清晰,才是這個系列的宣言。","完稿日:先花一小時鋪大結構,再進細節,別反過來。","畫到卡住就站起來退三步看,別在局部裡打轉。","今天畫的不是一張圖,是 20 分之 1 的作品集。"],
+  eng:["敢講錯的人進步最快,今天至少主動開口三次。","課前準備把想講的句子先想好,上課直接用。","聽不懂就問,你付錢是來練的不是來表演的。"],
+  course:["看課不用狂抄筆記,看完馬上動手畫才會留下來。","Force 看的是力量方向,不是漂亮線條。","解剖名詞記不住沒關係,體塊的形狀要記住。"],
+  run:["配速不重要,出門就完成一半,跑完拉小腿。","今天別看錶,用能講話的速度跑完就好。","腳步放輕,姿勢比速度值錢。"],
+  runLong:["長距離跑慢一點沒關係,距離到了就是贏。","前半段刻意壓速度,後半段你會感謝自己。"],
+  skull:["先畫顱腔體塊再放五官,順序就是實力。","眼窩左右對位盯緊,這是你的老毛病也是突破口。","畫壞的那顆最值錢,留著對照。"],
+  hand:["手指從關節分段畫,禁止一筆帶過。","畫手不順很正常,累積到 150 隻才算數。","畫你自己的左手,免費模特兒就在手腕上。"],
+  leg:["重量從骨盆傳到腳跟,每條線都要有方向。","大轉子位置抓對,整條腿就對一半。","臀是體塊不是輪廓,先想盒子再想曲線。"],
+  torso:["軀幹是一個會扭轉的盒子,先定盒子再談肌肉。","透視錯了,肌肉畫再好也是貼紙。","肋廓和骨盆的夾角,決定整張圖的張力。"],
+  fun:["休閒不是偷懶,是把眼睛餵飽——看到好的東西記得存參考。","出去玩就專心玩,回來畫的圖會更好。","電影和展覽都是免費的構圖課,放鬆看就好。"],
+};
+function coachLine(plan,date){
+  const r=rng('coach'+dk(date)+':'+(S.salt[dk(date)]||0));
+  let pool;
+  if(plan.off)pool=COACH.off;
+  else if(plan.light)pool=COACH.light;
+  else if(plan.wknd){
+    const hasFun=plan.blocks.some(b=>b.type==='fun');
+    pool=hasFun&&r()<0.5?COACH.fun:(plan.run&&r()<0.35?COACH.runLong:COACH.theme);
+  }
+  else if(plan.eng)pool=COACH.eng;
+  else if(plan.course)pool=COACH.course;
+  else{
+    const db=plan.blocks.find(b=>b.drill);
+    const dPool=db&&COACH[db.drill]?COACH[db.drill]:COACH.skull;
+    pool=plan.run&&r()<0.45?COACH.run:dPool;
+  }
+  return pool[Math.floor(r()*pool.length)];
+}
+
+/* ═══════════ 單日計畫 ═══════════ */
+const DAY_START=19*60+50, DAY_END=23*60;
+function planDay(date){
+  const key=dk(date), wd=date.getDay(), wknd=(wd===0||wd===6);
+  const mon=monday(date), idx=(wd+6)%7;
+  const A=weekAssign(mon);
+  const eng=isEng(date), run=A.run.includes(idx),
+        course=!wknd&&A.course.includes(idx), lower=A.lower.includes(idx);
+  const r=rng('day'+key+':'+(S.salt[key]||0));
+  const cur=THEMES[Math.min(S.done,19)];
+  const meta={eng,run,wknd,course,light:!!S.light[key],off:!!S.off[key]};
+  let blocks=[];
+
+  if(date<PLAN_START)return {...meta,pre:true,run:false,course:false,eng:false,blocks:[]};
+  if(meta.off)return {...meta,run:false,course:false,blocks:[]};
+
+  if(meta.light){
+    blocks=[
+      {type:'draw',ttl:'極短速寫',sub:'20 分鐘,只畫 2 顆頭骨或 2 隻手',min:20},
+      {type:'sub',ttl:'散步或伸展',sub:'20 分鐘,讓今天過得去就好',min:20}];
+    return {...meta,blocks:seqTimes(blocks,key)};
+  }
+
+  /* 週末:完整一日排程(10:00–23:00) */
+  if(wknd){
+    const wkNo=Math.max(0,Math.floor((mon-RUN_ANCHOR)/(7*86400000)));
+    const toMin=t=>{const[a,b]=t.split(':');return +a*60+ +b};
+    const dayName=wd===6?'sat':'sun';
+    /* 每週輪流由週六/週日當休閒日,活動照庫輪替 */
+    const leisureIdx=(wkNo%2===0)?5:6;
+    let act=null;
+    if(idx===leisureIdx){
+      const pool=(S.acts||[]).filter(a=>a.d==='both'||a.d===dayName);
+      if(pool.length)act=pool[wkNo%pool.length];
+      const skip=S.skipFun[key]||0;
+      if(act&&skip>0)act=ALT_FUN[(skip-1)%ALT_FUN.length];
+    }
+    const used=[];
+    if(act){
+      const as=toMin(act.s),ae=toMin(act.e);
+      blocks.push({type:'fun',ttl:act.name,sub:'休閒充電・你設定的時段',min:ae-as,time:fmt(as)+'–'+fmt(ae),ord:as});
+      used.push([as,ae]);
+    }
+    /* 三個時段:上午 10:00–12:40 / 下午 13:30–17:40 / 晚上 19:00–23:00 */
+    const slots=[[600,760],[810,1060],[1140,1380]].map(([s,e])=>{
+      let fs=s,fe=e;
+      for(const [us,ue] of used){
+        if(us<fe&&ue>fs){ if(us-fs>=fe-ue)fe=Math.min(fe,us); else fs=Math.max(fs,ue); }
+      }
+      return [fs,fe];
+    }).filter(([s,e])=>e-s>=45);
+    /* 從時段池取一段時間,取完更新剩餘 */
+    const take=(len,preferAfternoon,minStart)=>{
+      let bi=-1,best=-1;
+      slots.forEach(([s,e],i)=>{
+        const cap=e-s; if(cap<25)return;
+        if(minStart&&s<minStart)return;
+        const score=Math.min(cap,len)+(preferAfternoon&&s>=800&&s<1140?60:0);
+        if(score>best){best=score;bi=i}
+      });
+      if(bi<0)return null;
+      const len2=Math.min(len,slots[bi][1]-slots[bi][0]);
+      const s=slots[bi][0], e=s+len2;
+      slots[bi][0]=e+15;
+      if(slots[bi][1]-slots[bi][0]<25)slots.splice(bi,1);
+      return [s,e];
+    };
+    /* 主題完稿:優先下午(有休閒日縮成2小時) */
+    if(S.done<20){
+      const seg=take(act?120:180,true);
+      if(seg)blocks.push({type:'draw',ttl:'主題 '+pad(cur.n)+'・'+cur.t,
+        sub:'完稿推進・'+Math.round((seg[1]-seg[0])/60*10)/10+' 小時',
+        min:seg[1]-seg[0],time:fmt(seg[0])+'–'+fmt(seg[1]),ord:seg[0],theme:true});
+    }
+    /* 週末課程:吸收不同東西,預設與平日錯開,一樣三門自選 */
+    {
+      const defCk=defaultCourse(date,wkNo+idx);
+      const ck=(S.coursePick[key]&&COURSE_DATA[S.coursePick[key]])?S.coursePick[key]:defCk;
+      const B=courseBundle(ck,date);
+      const seg=B?take(B.tot,false):null;
+      if(seg){
+        const first=B.cd.lessons[B.sel[0]];
+        blocks.push({type:'draw',ttl:(B.review?'複習(1.25x)・':'上課・')+B.cd.name+(B.mode&&!B.review?'('+B.mode+')':''),
+          sub:'本次 '+B.sel.length+' 課・約 '+B.tot+' 分:'+first[1]+(B.sel.length>1?' …等':''),
+          min:seg[1]-seg[0],time:fmt(seg[0])+'–'+fmt(seg[1]),ord:seg[0],courseKey:ck,bundle:B.sel,review:B.review});
+        const seg2=take(25,false,seg[1]);
+        if(seg2)blocks.push({type:'draw',ttl:'繪製跟練',sub:'剛上完的立刻畫,5 組起跳',
+          min:seg2[1]-seg2[0],time:fmt(seg2[0])+'–'+fmt(seg2[1]),ord:seg2[0]});
+      }
+    }
+    /* 跑步 */
+    if(run){
+      const rb=runBlock(mon,A.run.indexOf(idx),true,key);
+      const seg=take(rb.min,false);
+      if(seg)blocks.push({...rb,min:seg[1]-seg[0],time:fmt(seg[0])+'–'+fmt(seg[1]),ord:seg[0]});
+    }
+    /* 晚上還有空檔且沒休閒 → 輕量選項(可做可不做) */
+    const eveFree=slots.find(([s,e])=>s>=1140&&e-s>=40);
+    const eveHasFun=blocks.some(b=>b.type==='fun'&&(b.ord||0)>=1140);
+    if(eveFree&&!eveHasFun){
+      blocks.push({type:'sub',ttl:'輕量選項(可做可不做)',sub:'30 分速寫加餐或英文自習・跳過也不影響進度',
+        min:30,time:fmt(eveFree[0])+'–'+fmt(eveFree[0]+30),ord:eveFree[0]});
+    }
+    blocks.sort((a,b)=>(a.ord||0)-(b.ord||0));
+    return {...meta,course:blocks.some(b=>b.courseKey),blocks};
+  }
+
+  /* 英文夜:固定時間卡位 */
+  if(eng){
+    const es=(()=>{const [h,m]=engTimeFor(date).split(':');return +h*60+ +m})();
+    const ee=es+(+S.engDur||50);
+    const dr=drillKind(date);
+    const out=[];
+    const home=S.late[key]?20*60:19*60+30, ds=home+20;
+    const prepS=Math.max(home,es-30);
+    if(prepS-ds>=30){
+      const e=Math.min(prepS-5,ds+45);
+      out.push({type:'draw',ttl:dr.name+'(課前)',sub:'3 顆 / 3 隻即可',min:e-ds,drill:dr.k,time:fmt(ds)+'–'+fmt(e)});
+    }
+    if(es-prepS>=15)
+      out.push({type:'eng',ttl:'課前準備',sub:'教材預習 / 複習上次筆記',min:es-prepS,time:fmt(prepS)+'–'+fmt(es)});
+    out.push({type:'eng',ttl:'英文課',sub:'固定時間・本日主活動',min:ee-es,time:fmt(es)+'–'+fmt(ee)});
+    if(DAY_END-ee>=35){
+      const s=ee+10,e=Math.min(DAY_END,s+30);
+      out.push({type:'draw',ttl:dr.name+'(課後)',sub:'收操式速寫,不貪多',min:e-s,drill:dr.k,time:fmt(s)+'–'+fmt(e)});
+    }
+    return {...meta,blocks:out};
+  }
+
+  /* 課程夜:三門課同供選擇,上課段 + 繪製段分開 */
+  if(course){
+    const wkNo=Math.max(0,Math.floor((mon-RUN_ANCHOR)/(7*86400000)));
+    const orderC=A.course.indexOf(idx);
+    const defCk=defaultCourse(date,wkNo*2+orderC);
+    const ck=(S.coursePick[key]&&COURSE_DATA[S.coursePick[key]])?S.coursePick[key]:defCk;
+    const B=courseBundle(ck,date);
+    if(!B){return {...meta,course:false,blocks:seqTimes([{type:'draw',ttl:'自由速寫夜',sub:'本月課程都看完了,自由練 60 分',min:60}],key)}}
+    const first=B.cd.lessons[B.sel[0]];
+    blocks.push({type:'draw',
+      ttl:(B.review?'複習(1.25x)・':'上課・')+B.cd.name+(B.mode&&!B.review?'('+B.mode+')':''),
+      sub:'本次 '+B.sel.length+' 課・約 '+B.tot+' 分:'+first[1]+(B.sel.length>1?' …等':''),
+      min:B.tot,courseKey:ck,bundle:B.sel,review:B.review});
+    const kw=B.sel.map(j=>B.cd.lessons[j][2]+' '+B.cd.lessons[j][1]).join(' ');
+    const dk2=drillOf(kw);
+    blocks.push({type:'draw',
+      ttl:'繪製跟練'+(dk2?'('+({leg:'腿臀足',hand:'手部',skull:'頭骨',torso:'軀幹'}[dk2]||'')+')':''),
+      sub:'上完立刻畫剛學的,5 組起跳・30 分',min:30,drill:dk2||undefined});
+    if(run){
+      blocks.unshift(runBlock(mon,A.run.indexOf(idx),false,key));
+    }else if(r()<0.3){blocks.push(SUBS[2]);}
+    return {...meta,blocks:seqTimes(blocks,key)};
+  }
+
+  /* 一般平日 */
+  const dr=drillKind(date);
+  const drillB={type:'draw',ttl:dr.name,sub:dr.tip+'・60 分鐘',min:60,drill:dr.k};
+  const handNight=mk(date)>='2026-09'&&lower;
+  if(run){
+    const runB=runBlock(mon,A.run.indexOf(idx),false,key);
+    r()<0.5?blocks.push(runB,drillB):blocks.push(drillB,runB);
+    if(r()<0.35)blocks.push(SUBS[Math.floor(r()*SUBS.length)]);
+  }else{
+    blocks.push(drillB);
+    if(handNight)blocks.push({type:'sub',ttl:'手部維持速寫',sub:'15 分鐘 3 隻,不設指標只保手感',min:15,drill:'hand'});
+    else{
+      const s1=SUBS[Math.floor(r()*SUBS.length)];
+      blocks.push(s1);
+      if(r()<0.3){const rest=SUBS.filter(x=>x!==s1);blocks.push(rest[Math.floor(r()*rest.length)])}
+    }
+  }
+  return {...meta,blocks:seqTimes(blocks,key)};
+}
+function seqTimes(blocks,key){
+  let t=(key&&S.late[key])?20*60+15:DAY_START;
+  return blocks.map(b=>{
+    const s=t,e=Math.min(t+b.min,DAY_END);
+    t=e+10;
+    return {...b,time:fmt(s)+'–'+fmt(e)};
+  });
+}
+
+/* ═══════════ render:今晚 ═══════════ */
+const TAGN={run:'跑步',draw:'畫圖',eng:'英文',sub:'副',fun:'休閒'};
+function renderToday(){
+  const now=new Date(), key=dk(now);
+  document.getElementById('dateLabel').textContent=(now.getMonth()+1)+'/'+now.getDate()+'(週'+WD[now.getDay()]+')';
+  const plan=planDay(now);
+  const isLate=!!S.late[key];
+  document.getElementById('coachBox').textContent=
+    plan.pre?'計畫 7/12 正式開始——今晚把畫具、跑鞋和課程帳號準備好。':coachLine(plan,now);
+  document.getElementById('todayEyebrow').textContent=
+    plan.pre?'PLAN STARTS 7/12':(plan.off?'TODAY · 有事日':(plan.wknd?'TODAY · 週末全日排程':'TONIGHT · '+(isLate?'20:00':'19:30')+' – 23:00'));
+  document.getElementById('lightNote').style.display=plan.light&&!plan.off&&!plan.pre?'block':'none';
+  document.getElementById('lightBtn').textContent=plan.light?'恢復正常行程':'今天太累';
+  document.getElementById('offBtn').textContent=plan.off?'取消有事':'今天有事';
+  document.getElementById('lateBtn').textContent=isLate?'取消加班':'今天加班';
+  document.getElementById('rainBtn').textContent=S.rain[key]?'雨停了,恢復戶外跑':'下雨,改室內運動';
+  const hideCtl=plan.off||plan.pre;
+  document.getElementById('shuffleBtn').style.display=hideCtl?'none':'block';
+  document.getElementById('lightBtn').style.display=hideCtl?'none':'block';
+  document.getElementById('lateBtn').style.display=(hideCtl||plan.wknd)?'none':'block';
+  document.getElementById('offBtn').style.display=plan.pre?'none':'block';
+  document.getElementById('rainBtn').style.display=(!hideCtl&&plan.run)?'block':'none';
+
+  const h=hist(key);
+  const list=document.getElementById('planList');
+  list.innerHTML='';
+  if(plan.pre){
+    list.innerHTML='<div class="offmsg">173 天計畫從 7/12 開始。<br>先去「設定」把英文課日、活動庫排好。</div>';
+  }else if(plan.off){
+    list.innerHTML='<div class="offmsg">今天已標記有事,不排任務。<br>本週的跑步與課程夜已自動重排。</div>';
+  }
+  plan.blocks.forEach((b,i)=>{
+    const done=(h.blk||[]).includes(i);
+    const el=document.createElement('div');
+    el.className='blk'+(done?' done':'');
+    el.innerHTML='<div class="time">'+b.time+'</div>'+
+      '<div class="bd"><div class="ttl"><span class="tag t-'+b.type+'">'+TAGN[b.type]+'</span>'+b.ttl+'</div>'+
+      '<div class="sub">'+b.sub+'</div></div>'+
+      '<button class="chk">✓</button>';
+    el.querySelector('.chk').onclick=()=>{
+      h.blk=h.blk||[];
+      const at=h.blk.indexOf(i);
+      if(at>=0){h.blk.splice(at,1); h[b.type]=Math.max(0,(h[b.type]||0)-1);
+        if(b.km)h.km=Math.max(0,(h.km||0)-b.km);}
+      else{h.blk.push(i); h[b.type]=(h[b.type]||0)+1;
+        if(b.km)h.km=(h.km||0)+b.km;
+        toast('已完成:'+b.ttl);}
+      save(); renderAll();
+    };
+    list.appendChild(el);
+  });
+
+  const tc=document.getElementById('todayCards');
+  tc.innerHTML='';
+  const cur=THEMES[Math.min(S.done,19)];
+  if(plan.wknd&&S.done<20&&!plan.light&&!plan.off){
+    const c=document.createElement('div');c.className='card';
+    c.innerHTML='<div class="eyebrow">'+PHASE_NAME[cur.p]+'</div>'+
+      '<h3>主題 '+pad(cur.n)+'・'+cur.t+'</h3>'+
+      '<div class="meta">【目標】'+cur.g+'</div>'+
+      '<div class="ban">【虛化禁區】'+cur.b+'</div>'+
+      '<div class="rowbtns"><button id="finishBtn">完稿 ＋1</button></div>';
+    tc.appendChild(c);
+    c.querySelector('#finishBtn').onclick=()=>{
+      if(S.done>=20)return;
+      S.done++; toast('主題 '+pad(cur.n)+' 完稿!'+(S.done>=20?'20 張全數達成':''));
+      save(); renderAll();
+    };
+  }
+  const seen=new Set();
+  plan.blocks.filter(b=>b.drill&&!plan.light).forEach(b=>{
+    if(seen.has(b.drill))return; seen.add(b.drill);
+    const nm={skull:'頭骨速寫',hand:'手部速寫',leg:'腿臀足速寫',torso:'軀幹・透視速寫'}[b.drill];
+    const c=document.createElement('div');c.className='card';
+    c.innerHTML='<div class="drill"><div class="lbl">'+nm+
+      '<small>快速計數:每畫完 5 個按一下,會累計進總進度</small></div>'+
+      '<div class="right"><span class="count">'+S[b.drill]+'</span><button data-add="'+b.drill+'">＋5</button></div></div>';
+    tc.appendChild(c);
+  });
+  /* 課程夜:課表卡(三門課自選) */
+  const cb=plan.blocks.find(b=>b.courseKey);
+  if(cb&&!plan.light){
+    const cd=COURSE_DATA[cb.courseKey];
+    const done=watchedSet(cb.courseKey).size;
+    const pct=Math.round(done/cd.lessons.length*100);
+    const tabs=COURSE_KEYS.map(k=>{
+      const d2=watchedSet(k).size;
+      const p2=Math.round(d2/COURSE_DATA[k].lessons.length*100);
+      const on=k===cb.courseKey;
+      return '<button data-ck="'+k+'" style="flex:1 1 30%;padding:8px 4px;font-family:inherit;font-size:12px;font-weight:700;'+
+        'border:2px solid '+(on?'var(--ink)':'var(--line)')+';border-radius:4px;cursor:pointer;'+
+        'background:'+(on?'var(--ink)':'none')+';color:'+(on?'var(--paper)':'var(--ink-soft)')+'">'+
+        COURSE_SHORT[k]+'<br>'+p2+'%</button>';
+    }).join('');
+    const rows=cb.bundle.map(j=>{
+      const L=cd.lessons[j];
+      const m=cb.review?Math.ceil(L[0]/1.25):L[0];
+      return '<div class="titem"><div class="no">'+m+'′</div><div>'+L[1]+
+        (L[2]?'<small style="display:block;color:var(--ink-faint);font-size:11px">'+L[2]+'</small>':'')+'</div></div>';
+    }).join('');
+    const c=document.createElement('div');c.className='card';
+    c.innerHTML='<div class="eyebrow">今晚上哪門?點選切換(三門都是人體結構,選了就專心上)</div>'+
+      '<div style="display:flex;gap:6px;margin-bottom:10px">'+tabs+'</div>'+
+      '<div class="eyebrow">'+(cb.review?'複習輪(1.25x)・':'')+'進度 '+done+' / '+cd.lessons.length+'('+pct+'%)</div>'+
+      '<div class="tlist">'+rows+'</div>'+
+      '<div class="rowbtns"><button id="unitDone">完成今晚 '+cb.bundle.length+' 課</button></div>';
+    tc.appendChild(c);
+    c.querySelectorAll('button[data-ck]').forEach(b=>{
+      b.onclick=()=>{S.coursePick[key]=b.dataset.ck;save();renderAll()};
+    });
+    c.querySelector('#unitDone').onclick=()=>{
+      if(!S.watched)S.watched={};
+      if(!S.watched[cb.courseKey])S.watched[cb.courseKey]=[];
+      cb.bundle.forEach(j=>{if(!S.watched[cb.courseKey].includes(j))S.watched[cb.courseKey].push(j)});
+      save(); renderAll(); toast(cd.name+' +'+cb.bundle.length+' 課');
+    };
+  }
+  /* 週末休閒卡:查展覽 / 換行程 */
+  const fb=plan.blocks.find(b=>b.type==='fun');
+  if(fb&&!plan.light){
+    const c=document.createElement('div');c.className='card';
+    c.innerHTML='<div class="eyebrow">今日休閒</div>'+
+      '<h3>'+fb.ttl+'</h3>'+
+      '<div class="meta">當天不想去?按「換行程」改排圖書館 / 咖啡廳這類輕行程。</div>'+
+      '<div class="rowbtns"><button id="funExpo">查北部展覽・放映</button>'+
+      '<button class="ghost" id="funSwap">換行程</button></div>'+
+      '<div class="meta" id="expoBox" style="margin-top:10px;white-space:pre-wrap"></div>';
+    tc.appendChild(c);
+    c.querySelector('#funSwap').onclick=()=>{
+      S.skipFun[key]=(S.skipFun[key]||0)+1;
+      delete (S.history[key]||{}).blk;
+      save(); renderAll(); toast('已換行程');
+    };
+    c.querySelector('#funExpo').onclick=async()=>{
+      const box=document.getElementById('expoBox');
+      box.textContent='查詢中,約 20 秒…';
+      try{
+        const res=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,
+            messages:[{role:'user',content:'請搜尋台北市立美術館(tfam.museum)、台北當代藝術館MOCA(mocataipei.org.tw)、兩廳院、光點台北 目前與近期檔期,推薦3到5個值得看的展覽或放映。用繁體中文,每項一行,格式:名稱|場館|日期範圍|一句推薦理由。只輸出清單,不要前言。'}],
+            tools:[{type:'web_search_20250305',name:'web_search'}]})});
+        const data=await res.json();
+        const txt=(data.content||[]).filter(i=>i.type==='text').map(i=>i.text).join('\n').trim();
+        box.textContent=txt||'查詢沒有結果,直接開官網看檔期吧。';
+      }catch(e){
+        box.textContent='這個功能要在 Claude 網站內開啟才能查詢。官網:tfam.museum / mocataipei.org.tw / npac-ntch.org / spot.org.tw';
+      }
+    };
+  }
+  bindAdd(tc);
+}
+
+/* ═══════════ render:本週 ═══════════ */
+function renderWeek(){
+  const now=new Date();
+  const list=document.getElementById('weekList');
+  list.innerHTML='';
+  for(let i=0;i<7;i++){
+    const d=new Date(now);d.setDate(now.getDate()+i);d.setHours(0,0,0,0);
+    const key=dk(d), plan=planDay(d), h=S.history[key]||{};
+    const isToday=key===dk(now);
+    const chips=[];
+    if(plan.pre)chips.push('<span class="chip c-sub">7/12 開始</span>');
+    else if(plan.off)chips.push('<span class="chip c-sub">有事</span>');
+    else if(plan.light)chips.push('<span class="chip c-sub">輕量日</span>');
+    else{
+      if(plan.eng)chips.push('<span class="chip c-eng">英文 '+engTimeFor(d)+'</span>');
+      if(plan.run){
+        const kb=plan.blocks.find(b=>b.type==='run');
+        chips.push('<span class="chip c-run">'+(kb&&kb.km===0?'室內運動':'跑 '+(kb?kb.km+'k':''))+'</span>');
+      }
+      if(plan.wknd){
+        const fb=plan.blocks.find(b=>b.type==='fun');
+        if(fb)chips.push('<span class="chip c-fun">'+fb.ttl+'</span>');
+        if(plan.blocks.some(b=>b.theme))chips.push('<span class="chip c-draw">主題完稿</span>');
+        if(plan.blocks.some(b=>b.courseKey))chips.push('<span class="chip c-draw">上課</span>');
+      }
+      else if(plan.course)chips.push('<span class="chip c-draw">課程跟練</span>');
+      else{
+        const db=plan.blocks.find(b=>b.drill);
+        chips.push('<span class="chip c-draw">'+(db&&db.drill==='leg'?'腿臀drill':'速寫drill')+'</span>');
+      }
+    }
+    const done=(h.blk&&h.blk.length>0);
+    const el=document.createElement('div');
+    el.className='wkrow'+(isToday?' today':'');
+    el.innerHTML='<div class="d">週'+WD[d.getDay()]+'<small>'+(d.getMonth()+1)+'/'+d.getDate()+'</small></div>'+
+      '<div class="acts">'+chips.join('')+'</div>'+
+      '<button class="offT'+(plan.off?' isOff':'')+'">'+(plan.off?'取消':'有事')+'</button>'+
+      '<div class="st">'+(done?'✓':'')+'</div>';
+    el.querySelector('.offT').onclick=(ev)=>{
+      ev.stopPropagation();
+      S.off[key]?delete S.off[key]:S.off[key]=true;
+      save(); renderAll();
+    };
+    el.style.cursor='pointer';
+    el.onclick=()=>openPreview(d);
+    list.appendChild(el);
+  }
+}
+
+/* ═══════════ render:進度 ═══════════ */
+function renderProg(){
+  const now=new Date(), mon=monday(now);
+  let run=0,draw=0,eng=0,km=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(mon);d.setDate(mon.getDate()+i);
+    const h=S.history[dk(d)]||{};
+    if(h.run)run++; if(h.draw)draw++; if(h.eng)eng++; km+=h.km||0;
+  }
+  document.getElementById('wRun').textContent=run+'/'+S.runTarget;
+  document.getElementById('wKm').textContent=Math.round(km*10)/10;
+  document.getElementById('wDraw').textContent=draw;
+  document.getElementById('wEng').textContent=eng;
+  document.getElementById('skullCount').textContent=S.skull;
+  document.getElementById('handCount').textContent=S.hand;
+  document.getElementById('legCount').textContent=S.leg;
+  document.getElementById('torsoCount').textContent=S.torso;
+  /* 本月目標卡 */
+  const ym=mk(now), mp=MONTH_PLAN[ym];
+  const mc=document.getElementById('monthCard');
+  if(mp){
+    let qDone=0,qAll=0;
+    for(const k of COURSE_KEYS){
+      const q=monthQueue(k,ym), w=watchedSet(k);
+      qAll+=q.length; qDone+=q.filter(i=>w.has(i)).length;
+    }
+    const qPct=qAll?Math.round(qDone/qAll*100):0;
+    mc.style.display='block';
+    mc.innerHTML='<div class="eyebrow">'+(now.getMonth()+1)+' 月主攻</div>'+
+      '<h3>'+mp.focus+'</h3>'+
+      '<div class="tlist">'+mp.targets.map(t=>'<div class="titem"><div class="no">・</div><div>'+t+'</div></div>').join('')+'</div>'+
+      '<div class="progress" style="margin-top:10px"><div class="top"><b>本月課程隊列</b><span>'+qDone+' / '+qAll+' 課('+qPct+'%)</span></div>'+
+      '<div class="bar"><i style="width:'+qPct+'%"></i></div></div>';
+  }else{mc.style.display='none'}
+  document.getElementById('progText').textContent=S.done+' / 20';
+  document.getElementById('progBar').style.width=(S.done/20*100)+'%';
+  const end=new Date(2026,11,31), days=Math.max(0,Math.ceil((end-now)/86400000));
+  document.getElementById('deadline').textContent='距 12/31 驗收還有 '+days+' 天・最低完成線 16 張(砍單順序 19→13→6→3)';
+
+  const tl=document.getElementById('themeList');
+  tl.innerHTML='';
+  let lastP=0;
+  THEMES.forEach((t,i)=>{
+    if(t.p!==lastP){lastP=t.p;
+      const ph=document.createElement('div');ph.className='eyebrow';ph.style.marginTop='10px';
+      ph.textContent=PHASE_NAME[t.p];tl.appendChild(ph);}
+    const el=document.createElement('div');
+    el.className='titem'+(i<S.done?' doneT':(i===S.done?' cur':''));
+    el.innerHTML='<div class="no">'+(i<S.done?'✓':pad(t.n))+'</div><div>'+t.t+'</div>';
+    tl.appendChild(el);
+  });
+  document.getElementById('undoBtn').style.display=S.done>0?'block':'none';
+}
+
+/* ═══════════ render:設定 ═══════════ */
+function renderCal(){
+  const y=calCursor.getFullYear(), m=calCursor.getMonth();
+  document.getElementById('calTitle').textContent=y+' 年 '+(m+1)+' 月';
+  const g=document.getElementById('calGrid');
+  g.innerHTML='';
+  for(const w of WD){const h=document.createElement('div');h.className='h';h.textContent=w;g.appendChild(h)}
+  const first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
+  const ym=y+'-'+pad(m+1), obj=S.english[ym]||(S.english[ym]={});
+  const todayK=dk(new Date());
+  for(let i=0;i<first;i++)g.appendChild(document.createElement('div'));
+  for(let day=1;day<=dim;day++){
+    const has=obj[day]!==undefined;
+    const c=document.createElement('div');
+    c.className='c'+(has?' eng':'')+(dk(new Date(y,m,day))===todayK?' todayC':'');
+    c.innerHTML=day+(has?'<span class="tm">'+obj[day]+'</span>':'');
+    c.onclick=()=>openEngModal(ym,day,obj[day]);
+    g.appendChild(c);
+  }
+}
+function renderActs(){
+  const el=document.getElementById('actList');
+  el.innerHTML='';
+  (S.acts||[]).forEach((a,i)=>{
+    const row=document.createElement('div');row.className='drill';
+    row.innerHTML='<div class="lbl">'+a.name+'<small>'+a.s+'–'+a.e+'・'+({both:'六日皆可',sat:'限週六',sun:'限週日'}[a.d])+'</small></div>'+
+      '<div class="right"><button data-del="'+i+'">刪除</button></div>';
+    el.appendChild(row);
+  });
+  el.querySelectorAll('button[data-del]').forEach(b=>{
+    b.onclick=()=>{S.acts.splice(+b.dataset.del,1);save();renderAll()};
+  });
+}
+function renderSet(){
+  renderCal();
+  renderActs();
+  document.getElementById('engTime').value=S.engTime;
+  document.getElementById('engDur').value=S.engDur;
+  document.getElementById('runSel').value=S.runTarget;
+  document.getElementById('runBase').value=S.runBase;
+  document.getElementById('courseSel').value=S.courseNights;
+  document.getElementById('skullEdit').value=S.skull;
+  document.getElementById('handEdit').value=S.hand;
+  document.getElementById('legEdit').value=S.leg;
+  document.getElementById('torsoEdit').value=S.torso;
+  document.getElementById('doneEdit').value=S.done;
+}
+
+/* ═══════════ 事件 ═══════════ */
+function bindAdd(scope){
+  scope.querySelectorAll('button[data-add]').forEach(b=>{
+    b.onclick=()=>{const k=b.dataset.add;S[k]+=5;
+      toast({skull:'頭骨',hand:'手部',leg:'腿臀足',torso:'軀幹透視'}[k]+' +5,累計 '+S[k]);save();renderAll()};
+  });
+}
+document.querySelectorAll('nav button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.getElementById(b.dataset.v).classList.add('on');
+  };
+});
+document.getElementById('shuffleBtn').onclick=()=>{
+  const key=dk(new Date());
+  S.salt[key]=(S.salt[key]||0)+1;
+  delete (S.history[key]||{}).blk;
+  save(); renderAll(); toast('已換一組順序');
+};
+document.getElementById('lightBtn').onclick=()=>{
+  const key=dk(new Date());
+  S.light[key]=!S.light[key];
+  delete (S.history[key]||{}).blk;
+  save(); renderAll();
+};
+document.getElementById('offBtn').onclick=()=>{
+  const key=dk(new Date());
+  S.off[key]?delete S.off[key]:S.off[key]=true;
+  delete (S.history[key]||{}).blk;
+  save(); renderAll();
+};
+document.getElementById('lateBtn').onclick=()=>{
+  const key=dk(new Date());
+  S.late[key]?delete S.late[key]:S.late[key]=true;
+  save(); renderAll();
+};
+document.getElementById('rainBtn').onclick=()=>{
+  const key=dk(new Date());
+  S.rain[key]?delete S.rain[key]:S.rain[key]=true;
+  save(); renderAll();
+  toast(S.rain[key]?'今天改室內運動 30 分':'恢復戶外跑');
+};
+let emCtx=null;
+function openEngModal(ym,day,cur){
+  emCtx={ym,day,has:cur!==undefined};
+  document.getElementById('emTitle').textContent=ym.replace('-','/')+'/'+day+' 英文課';
+  document.getElementById('emTime').value=cur||S.engTime||'20:00';
+  document.getElementById('emDel').style.display=emCtx.has?'block':'none';
+  document.getElementById('engModal').classList.add('on');
+}
+document.getElementById('emSave').onclick=()=>{
+  if(!emCtx)return;
+  const t=document.getElementById('emTime').value||S.engTime||'20:00';
+  (S.english[emCtx.ym]||(S.english[emCtx.ym]={}))[emCtx.day]=t;
+  S.engTime=t; /* 記住最近用的時間當預設 */
+  document.getElementById('engModal').classList.remove('on');
+  save(); renderAll(); toast('已設定 '+emCtx.day+' 日英文課 '+t);
+};
+document.getElementById('emDel').onclick=()=>{
+  if(!emCtx)return;
+  delete (S.english[emCtx.ym]||{})[emCtx.day];
+  document.getElementById('engModal').classList.remove('on');
+  save(); renderAll(); toast('已移除該日英文課');
+};
+document.getElementById('emCancel').onclick=()=>{
+  document.getElementById('engModal').classList.remove('on');
+};
+document.getElementById('actAdd').onclick=()=>{
+  const name=(document.getElementById('actName').value||'').trim();
+  if(!name){toast('先填活動名稱');return}
+  const s=document.getElementById('actS').value||'14:00';
+  const e=document.getElementById('actE').value||'17:00';
+  if(e<=s){toast('結束時間要晚於開始時間');return}
+  S.acts.push({name,s,e,d:document.getElementById('actD').value});
+  document.getElementById('actName').value='';
+  save(); renderAll(); toast('已加入活動庫:'+name);
+};
+let bkMode='export';
+document.getElementById('bkExport').onclick=()=>{
+  bkMode='export';
+  document.getElementById('bkTitle').textContent='匯出備份';
+  document.getElementById('bkHint').textContent='全選複製下面這串備份碼,存到記事本或雲端。';
+  document.getElementById('bkText').value=JSON.stringify(S);
+  document.getElementById('bkAction').textContent='複製到剪貼簿';
+  document.getElementById('bkModal').classList.add('on');
+};
+document.getElementById('bkImport').onclick=()=>{
+  bkMode='import';
+  document.getElementById('bkTitle').textContent='匯入備份';
+  document.getElementById('bkHint').textContent='把之前匯出的備份碼貼到下面,按還原。會覆蓋現有資料。';
+  document.getElementById('bkText').value='';
+  document.getElementById('bkAction').textContent='還原資料';
+  document.getElementById('bkModal').classList.add('on');
+};
+document.getElementById('bkAction').onclick=async()=>{
+  if(bkMode==='export'){
+    const ta=document.getElementById('bkText');
+    ta.select();
+    try{await navigator.clipboard.writeText(ta.value);toast('已複製,存好它')}
+    catch(e){try{document.execCommand('copy');toast('已複製,存好它')}catch(e2){toast('請手動全選複製')}}
+  }else{
+    try{
+      const o=JSON.parse(document.getElementById('bkText').value);
+      if(typeof o.skull!=='number')throw 0;
+      S={...S,...o};
+      save(); renderAll();
+      document.getElementById('bkModal').classList.remove('on');
+      toast('資料已還原');
+    }catch(e){toast('備份碼格式不對,再檢查一次')}
+  }
+};
+document.getElementById('bkClose').onclick=()=>{
+  document.getElementById('bkModal').classList.remove('on');
+};
+document.getElementById('syncEnable').onclick=async()=>{
+  const t=(document.getElementById('syncToken').value||'').trim();
+  if(!t){toast('先貼上權杖');return}
+  SYNC.token=t; SYNC.status='連線中…'; renderSyncUI();
+  try{
+    SYNC.gistId=await findOrCreateGist();
+    saveSync();
+    document.getElementById('syncToken').value='';
+    toast('同步已啟用');
+    await cloudPull(); cloudPush(true);
+  }catch(e){
+    SYNC.status='啟用失敗('+e.message+'),檢查權杖是否勾了 gist';
+    renderSyncUI();
+  }
+};
+document.getElementById('syncNow').onclick=async()=>{
+  if(!SYNC.token){toast('先啟用同步');return}
+  await cloudPull(); cloudPush(true);
+};
+document.getElementById('undoBtn').onclick=()=>{
+  if(S.done>0){S.done--;save();renderAll();toast('已復原一張')}
+};
+document.getElementById('calPrev').onclick=()=>{calCursor.setMonth(calCursor.getMonth()-1);renderCal()};
+document.getElementById('calNext').onclick=()=>{calCursor.setMonth(calCursor.getMonth()+1);renderCal()};
+document.getElementById('engTime').onchange=e=>{S.engTime=e.target.value||'20:00';save();renderAll()};
+document.getElementById('engDur').onchange=e=>{S.engDur=+e.target.value;save();renderAll()};
+document.getElementById('runSel').onchange=e=>{S.runTarget=+e.target.value;save();renderAll()};
+document.getElementById('runBase').onchange=e=>{S.runBase=+e.target.value;save();renderAll()};
+document.getElementById('courseSel').onchange=e=>{S.courseNights=+e.target.value;save();renderAll()};
+[['skull','skullEdit'],['hand','handEdit'],['leg','legEdit'],['torso','torsoEdit'],['done','doneEdit']].forEach(([k,id])=>{
+  document.getElementById(id).onchange=e=>{
+    S[k]=Math.max(0,+e.target.value||0);
+    if(k==='done')S.done=Math.min(20,S.done);
+    save();renderAll();
+  };
+});
+document.getElementById('setupGo').onclick=()=>{
+  S.skull=Math.max(0,+document.getElementById('su-skull').value||0);
+  S.hand=Math.max(0,+document.getElementById('su-hand').value||0);
+  S.leg=Math.max(0,+document.getElementById('su-leg').value||0);
+  S.done=Math.min(20,Math.max(0,+document.getElementById('su-done').value||0));
+  S.engTime=document.getElementById('su-engTime').value||'20:00';
+  S.setup=true;
+  document.getElementById('setupModal').classList.remove('on');
+  save(); renderAll();
+};
+bindAdd(document.getElementById('v-prog'));
+
+/* ═══════════ 預覽後台 ═══════════ */
+let pvDate=null;
+function openPreview(d){pvDate=new Date(d);pvDate.setHours(0,0,0,0);drawPreview();
+  document.getElementById('pvModal').classList.add('on')}
+function drawPreview(){
+  const p=planDay(pvDate);
+  document.getElementById('pvTitle').textContent=(pvDate.getMonth()+1)+'/'+pvDate.getDate()+'(週'+WD[pvDate.getDay()]+')';
+  document.getElementById('pvType').textContent=
+    p.pre?'計畫未開始':(p.off?'有事日':(p.light?'輕量日':(p.wknd?'週末全日排程':(p.eng?'英文課日':(p.course?'課程夜':(p.run?'跑步日':'速寫夜'))))));
+  document.getElementById('pvCoach').textContent=p.pre?'計畫 7/12 正式開始。':coachLine(p,pvDate);
+  const list=document.getElementById('pvList');
+  list.innerHTML='';
+  if(!p.blocks.length){
+    list.innerHTML='<div class="offmsg">'+(p.pre?'這天在計畫起點之前。':'這天不排任務。')+'</div>';
+  }
+  p.blocks.forEach(b=>{
+    const el=document.createElement('div');
+    el.className='blk';
+    el.innerHTML='<div class="time">'+b.time+'</div>'+
+      '<div class="bd"><div class="ttl"><span class="tag t-'+b.type+'">'+TAGN[b.type]+'</span>'+b.ttl+'</div>'+
+      '<div class="sub">'+b.sub+'</div></div>';
+    list.appendChild(el);
+  });
+}
+document.getElementById('pvPrev').onclick=()=>{pvDate.setDate(pvDate.getDate()-1);drawPreview()};
+document.getElementById('pvNext').onclick=()=>{pvDate.setDate(pvDate.getDate()+1);drawPreview()};
+document.getElementById('pvClose').onclick=()=>{document.getElementById('pvModal').classList.remove('on')};
+
+function renderAll(){[renderToday,renderWeek,renderProg,renderSet].forEach(f=>{try{f()}catch(e){console.error(e)}})}
+load();
+</script>
+</body>
+</html>
