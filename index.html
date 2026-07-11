@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>今晚做什麼</title>
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="今晚做什麼">
+<meta name="theme-color" content="#FAFAF8">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -566,6 +572,31 @@ async function findOrCreateGist(){
       files:{'evening-os.json':{content:JSON.stringify(S)}}})});
   return made.id;
 }
+/* 逐項合併:打卡/已看課/英文課日取聯集,設定值取較新那邊 → 兩台的修改都保留 */
+function mergeStates(A,B){
+  const newer=(A._ts||0)>=(B._ts||0)?A:B, older=newer===A?B:A;
+  const M={...older,...newer};
+  for(const k of ['off','late','rain','light','salt','skipFun','coursePick','skipBlk']){
+    M[k]={...(older[k]||{}),...(newer[k]||{})};
+  }
+  M.english={};
+  new Set([...Object.keys(older.english||{}),...Object.keys(newer.english||{})]).forEach(m=>{
+    M.english[m]={...((older.english||{})[m]||{}),...((newer.english||{})[m]||{})};
+  });
+  M.history={};
+  new Set([...Object.keys(older.history||{}),...Object.keys(newer.history||{})]).forEach(d=>{
+    const a=(older.history||{})[d],b=(newer.history||{})[d];
+    M.history[d]=(a&&b)?(((b.blk||[]).length>=(a.blk||[]).length)?b:a):(b||a);
+  });
+  M.watched={};
+  COURSE_KEYS.forEach(k=>{
+    M.watched[k]=[...new Set([...(older.watched&&older.watched[k]||[]),...(newer.watched&&newer.watched[k]||[])])];
+  });
+  M.acts=(newer.acts&&newer.acts.length?newer.acts:older.acts)||[];
+  M._ts=Math.max(A._ts||0,B._ts||0);
+  return M;
+}
+let pullDone=false, pushPending=false;
 async function cloudPull(){
   if(!SYNC.token||!SYNC.gistId)return;
   try{
@@ -574,18 +605,22 @@ async function cloudPull(){
     let content=f.content;
     if(f.truncated){const r=await fetch(f.raw_url);content=await r.text()}
     const remote=JSON.parse(content);
-    if((remote._ts||0)>(S._ts||0)){
-      S={...S,...remote};
-      await sSet(KEY,JSON.stringify(S));
-      renderAll(); toast('已從雲端同步最新資料');
-    }
+    const before=JSON.stringify(S);
+    const merged=mergeStates(S,remote);
+    S=merged;
+    await sSet(KEY,JSON.stringify(S));
+    if(JSON.stringify(S)!==before){renderAll();toast('已同步雲端資料')}
     SYNC.status='已同步 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
     SYNC.last=Date.now(); saveSync(); renderSyncUI();
-  }catch(e){SYNC.status='同步失敗('+e.message+')';renderSyncUI()}
+    pullDone=true;
+    if(pushPending||JSON.stringify(merged)!==content){pushPending=false;cloudPush(true)}
+  }catch(e){SYNC.status='同步失敗('+e.message+')';renderSyncUI();pullDone=true;
+    if(pushPending){pushPending=false;cloudPush(true)}}
 }
 let pushT=null;
 function cloudPush(now){
   if(!SYNC.token||!SYNC.gistId)return;
+  if(!pullDone&&!now){pushPending=true;return}
   clearTimeout(pushT);
   pushT=setTimeout(async()=>{
     try{
@@ -601,7 +636,10 @@ function renderSyncUI(){
   if(st)st.textContent='狀態:'+SYNC.status+(SYNC.token?'・鑰匙已存本機':'');
 }
 document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden&&Date.now()-SYNC.last>60000)cloudPull();
+  if(!document.hidden&&Date.now()-SYNC.last>10000)cloudPull();
+});
+window.addEventListener('focus',()=>{
+  if(Date.now()-SYNC.last>10000)cloudPull();
 });
 
 async function load(){
